@@ -50,13 +50,13 @@ class Memory {
   ~Memory();
   auto operator=(Memory&& mv) -> Memory&;
   auto operator=(const Memory& mv) -> Memory& = delete;
-  auto gpu() -> int;
-  auto size() -> size_t;
-  auto type() -> HeapType;
-
+  auto gpu() const -> int;
+  auto size() const -> size_t;
+  auto type() const -> HeapType;
+  auto handle() const -> int32_t;
  private:
   int m_gpu;
-  int32_t handle;
+  int32_t m_handle;
 };
 
 inline auto operator|(const HeapType& a, const HeapType& b) -> HeapType {
@@ -74,7 +74,7 @@ inline auto operator&(const HeapType& a, const HeapType& b) -> bool {
 template <typename API, typename Allocator>
 Memory<API, Allocator>::Memory() {
   this->m_gpu = 0;
-  this->handle = -1;
+  this->m_handle = -1;
 }
 
 template <typename API, typename Allocator>
@@ -83,7 +83,7 @@ Memory<API, Allocator>::Memory(int gpu, size_t size) {
   auto heap_index = Allocator::chooseHeap(gpu, heaps, HeapType::GpuOnly, size);
 
   this->m_gpu = gpu;
-  this->handle = Allocator::allocate(gpu, HeapType::GpuOnly, heap_index, size);
+  this->m_handle = Allocator::allocate(gpu, HeapType::GpuOnly, heap_index, size);
 }
 
 template <typename API, typename Allocator>
@@ -92,48 +92,55 @@ Memory<API, Allocator>::Memory(int gpu, HeapType type, size_t size) {
   auto heap_index = Allocator::chooseHeap(gpu, heaps, type, size);
 
   this->m_gpu = gpu;
-  this->handle = Allocator::allocate(gpu, type, heap_index, size);
+  this->m_handle = Allocator::allocate(gpu, type, heap_index, size);
 }
 
 template <typename API, typename Allocator>
 Memory<API, Allocator>::Memory(const Memory<API>& parent, size_t offset) {
   this->m_gpu = parent.m_gpu;
-  this->handle = API::Memory::offset(parent.handle, offset);
+  this->m_handle = API::Memory::offset(parent.m_handle, offset);
 }
 
 template <typename API, typename Allocator>
 Memory<API, Allocator>::Memory(Memory<API, Allocator>&& mv) {
-  *this = mv;
+  *this = std::move(mv);
 }
 
 template <typename API, typename Allocator>
 Memory<API, Allocator>::~Memory() {
-  if (this->handle >= 0) Allocator::destroy(this->handle);
+  if (this->m_handle >= 0) Allocator::destroy(this->m_handle);
 }
 
 template <typename API, typename Allocator>
 auto Memory<API, Allocator>::operator=(Memory<API, Allocator>&& mv)
     -> Memory<API, Allocator>& {
   this->m_gpu = mv.m_gpu;
-  this->handle = mv.handle;
+  this->m_handle = mv.m_handle;
 
-  mv.handle = -1;
+  mv.m_handle = -1;
   mv.m_gpu = 0;
+  
+  return *this;
 }
 
 template <typename API, typename Allocator>
-auto Memory<API, Allocator>::size() -> size_t {
-  return API::Memory::size(this->handle);
+auto Memory<API, Allocator>::size() const -> size_t {
+  return API::Memory::size(this->m_handle);
 }
 
 template <typename API, typename Allocator>
-auto Memory<API, Allocator>::type() -> HeapType {
-  return API::Memory::type(this->handle);
+auto Memory<API, Allocator>::type() const -> HeapType {
+  return API::Memory::type(this->m_handle);
 }
 
 template <typename API, typename Allocator>
-auto Memory<API, Allocator>::gpu() -> int {
+auto Memory<API, Allocator>::gpu() const -> int {
   return this->m_gpu;
+}
+
+template <typename API, typename Allocator>
+auto Memory<API, Allocator>::handle() const -> int32_t {
+  return this->m_handle;
 }
 
 template <typename API>

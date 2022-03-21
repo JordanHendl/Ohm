@@ -8,6 +8,7 @@
 #include "instance.h"
 #include "io/dlloader.h"
 #include "memory.h"
+#include "buffer.h"
 
 namespace ohm {
 namespace ovk {
@@ -22,6 +23,7 @@ struct System {
   std::vector<ovk::Device> devices;
   std::vector<ohm::Gpu> gpus;
   std::array<Memory, NUM_CACHE> memory;
+  std::array<Buffer, NUM_CACHE> buffer;
   vk::AllocationCallbacks* allocate_cb;
 
   System() {

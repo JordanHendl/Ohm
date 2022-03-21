@@ -3,9 +3,10 @@ find_package(SDL2 REQUIRED)
 
 set(vulkan_impl_srcs
      instance.cpp
+     system.cpp
      device.cpp
      memory.cpp
-     system.cpp
+     buffer.cpp
    )
 
 set(vulkan_impl_includes

@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-
 #include <iostream>
 #include <memory>
 #include "api/bits/pool_allocator.h"
@@ -62,7 +61,28 @@ auto test_pool() -> bool {
       Memory<API, PoolAllocator<API>>(0, HeapType::HostVisible, mem_size);
   return memory.type() & HeapType::HostVisible;
 }
+
+auto test_move() -> bool {
+  constexpr auto mem_size = 1024;
+  auto memory_1 = Memory<API, PoolAllocator<API>>(0, HeapType::HostVisible, mem_size);
+  auto memory_2 = Memory<API, PoolAllocator<API>>(std::move(memory_1));
+  
+  return memory_1.handle() < 0 && memory_2.handle() >= 0 && memory_2.type() & HeapType::HostVisible;
+}
 }  // namespace memory
+
+namespace array {
+auto test_allocation() -> bool {
+  auto array = Array<API, float>(0, 64);
+  return array.size() > 0 && array.handle() >= 0;
+}
+
+auto test_allocation_from_memory() -> bool {
+  auto memory = Memory<API>(0, 1024);
+  auto array = Array<API, float>(std::move(memory), 64);
+  return array.size() > 0 && array.handle() >= 0;
+}
+}
 }  // namespace ohm
 
 TEST(Vulkan, System) {
@@ -77,6 +97,12 @@ TEST(Vulkan, Memory) {
   EXPECT_TRUE(ohm::memory::test_type());
   EXPECT_TRUE(ohm::memory::test_offset());
   EXPECT_TRUE(ohm::memory::test_pool());
+  EXPECT_TRUE(ohm::memory::test_move());
+}
+
+TEST(Vulkan, Array) {
+  EXPECT_TRUE(ohm::array::test_allocation());
+  EXPECT_TRUE(ohm::array::test_allocation_from_memory());
 }
 
 auto main(int argc, char* argv[]) -> int {

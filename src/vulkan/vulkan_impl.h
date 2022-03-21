@@ -31,6 +31,12 @@ struct Vulkan {
     static auto offset(int32_t handle, size_t offset) -> size_t;
   };
   
+  struct Array {
+    static auto create(int gpu, size_t num_elmts, size_t elm_size) -> int32_t;
+    static auto destroy(int32_t handle) -> void;
+    static auto required(int32_t handle) -> size_t;
+    static auto bind(int32_t array_handle, int32_t memory_handle) -> void;
+  };
   /** Buffer-related function API
    */
 };

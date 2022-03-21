@@ -80,6 +80,7 @@ auto Vulkan::Memory::heaps(int gpu) -> const std::vector<GpuMemoryHeap>& {
   return device.heaps();
 }
 
+//@JH TODO would like to simplify this as its a bit messy.
 auto Vulkan::Memory::allocate(int gpu, HeapType requested, size_t heap_index,
                               size_t size) -> int32_t {
   auto& device = ovk::system().devices[gpu];
@@ -144,5 +145,42 @@ auto Vulkan::Memory::offset(int32_t handle, size_t offset) -> size_t {
 
   OhmException(true, Error::LogicError, "Too many memory allocations.");
   return 0;
+}
+
+auto Vulkan::Array::create(int gpu, size_t num_elmts, size_t elm_size) -> int32_t {
+    auto& device = ovk::system().devices[gpu];
+    auto index = 0;
+    for (auto& buf : ovk::system().buffer) {
+    if (!buf.initialized()) {
+      buf = std::move(ovk::Buffer(device, num_elmts, elm_size));
+      return index;
+    }
+    index++;
+  }
+    
+  OhmException(true, Error::APIError, "Too many buffers. API has run out of allocation.");
+  return -1;
+}
+
+auto Vulkan::Array::destroy(int32_t handle) -> void {
+  OhmException(handle < 0, Error::LogicError, "Attempting to delete an invalid array handle.");
+  auto& buf = ovk::system().buffer[handle];
+  auto tmp = ovk::Buffer();
+  tmp = std::move(buf);
+}
+
+auto Vulkan::Array::required(int32_t handle) -> size_t {
+  OhmException(handle < 0, Error::LogicError, "Attempting to query an invalid array handle.");
+  auto& buf = ovk::system().buffer[handle];
+  return buf.size();
+}
+
+auto Vulkan::Array::bind(int32_t array_handle, int32_t memory_handle) -> void {
+  OhmException(array_handle < 0, Error::LogicError, "Attempting to bind to an invalid array handle.");
+  OhmException(memory_handle < 0, Error::LogicError, "Attempting to bind an invalid memory handle.");
+  auto& buf = ovk::system().buffer[array_handle];
+  auto& mem = ovk::system().memory[memory_handle];
+  
+  buf.bind(mem);
 }
 }  // namespace ohm

@@ -1,7 +1,1 @@
-if(Build_Benchmarks)
-find_package(benchmark)
-if(benchmark_FOUND)
-  add_executable(benchmark_ohm_vulkan benchmark.cpp)
-  target_link_libraries(benchmark_ohm_vulkan benchmark::benchmark vulkan)
-endif()
-endif()
+add_subdirectory(memory_allocation)
