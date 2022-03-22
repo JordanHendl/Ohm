@@ -1,0 +1,7 @@
+if(Build_Benchmarks)
+find_package(benchmark)
+if(benchmark_FOUND)
+  add_executable(benchmark_ohm_vulkan_transfer benchmark.cpp)
+  target_link_libraries(benchmark_ohm_vulkan_transfer benchmark::benchmark vulkan)
+endif()
+endif()

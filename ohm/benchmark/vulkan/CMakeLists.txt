@@ -1,0 +1,2 @@
+add_subdirectory(memory_allocation)
+add_subdirectory(memory_transfer)

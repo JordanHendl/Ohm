@@ -1,7 +1,7 @@
 cmake_minimum_required( VERSION 3.8.0 ) 
 
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
-project( Ohm CXX )
+project( Ohm CXX C )
 
 option( Build_Benchmarks "Whether or not to build benchmarks for this project." ON )
 option( Build_Release "Whether or not to build the release version of this project." ON )
@@ -27,19 +27,25 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON              )
 if( Build_Release )
   set(CMAKE_BUILD_TYPE Release)
   if( MSVC )
-    set( COMPILE_OPTIONS /W2 /O2 ) 
+    set( CXX_COMPILE_OPTIONS /W2 /O2 ) 
+    set( LINKER_OPTIONS "" ) 
   elseif( UNIX )
-    set( COMPILE_OPTIONS -Wall -Werror -fPIC -O2 -fno-exceptions -fno-rtti ) 
+    set( C_COMPILE_OPTIONS -Wall -Werror -fPIC -O2 ) 
+    set( CXX_COMPILE_OPTIONS -Wall -Werror -fPIC -O2 -fno-exceptions -fno-rtti ) 
+    set( LINKER_OPTIONS "" ) 
   endif()
 else()
   if( MSVC )
-    set( COMPILE_OPTIONS /W2 /DEBUG ) 
+    set( CXX_COMPILE_OPTIONS /W2 /DEBUG ) 
+    set( LINKER_OPTIONS "" ) 
   elseif( UNIX )
-    set( COMPILE_OPTIONS -Wall -Werror -fPIC -g ) 
+    set( LINKER_OPTIONS -fsanitize=address ) 
+    set( CXX_COMPILE_OPTIONS -Wall -Werror -O1 -fno-omit-frame-pointer -fsanitize=address -fPIC -g ) 
   endif()
 endif()
 
-add_compile_options( ${COMPILE_OPTIONS} )
+add_compile_options( ${CXX_COMPILE_OPTIONS} )
+add_link_options( ${LINKER_OPTIONS} )
 
 set( EXPORT_BIN_DIR     bin     )
 set( EXPORT_INCLUDE_DIR include )
@@ -57,13 +63,14 @@ set( DOXYGEN_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/doc             )
 set( BUILD_DIR          ${CMAKE_BINARY_DIR}                         )
 set( HEADER_INSTALL_DIR ${EXPORT_INCLUDE_DIR}/${CMAKE_PROJECT_NAME} )
 
-include_directories( src )
+include_directories( ohm )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 
 set( CMAKE_SHARED_LIBRARY_PREFIX "imp_${CMAKE_SHARED_LIBRARY_PREFIX}" )
 
 include         ( Package )
 #add_subdirectory( external ) 
-add_subdirectory( src      )
+add_subdirectory( ohm      )
 
 #install( EXPORT ohm FILE ohm-config.cmake 
 #                    DESTINATION cmake 
