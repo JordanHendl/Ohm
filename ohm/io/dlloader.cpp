@@ -50,6 +50,12 @@ struct DlloaderData {
   FunctionMap map;
 
   DlloaderData() { this->handle = NULL; }
+  ~DlloaderData() {
+    if (this->handle) {
+      ::releaseHandle(this->handle);
+      this->handle = nullptr;
+    }
+  }
 };
 
 Dlloader::Dlloader() { this->loader_data = new DlloaderData(); }

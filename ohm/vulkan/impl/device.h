@@ -41,11 +41,10 @@ enum QueueTypes {
 
 class Device {
  public:
-
-
   Device();
   Device(Device&& mv);
-  auto operator=(const Device& cpy) -> Device&;
+  ~Device();
+  auto operator=(Device&& cpy) -> Device&;
   auto initialize(io::Dlloader& loader, vk::AllocationCallbacks* callback,
                   vk::PhysicalDevice device) -> void;
   auto initialize(vk::Device import, io::Dlloader& loader,
@@ -58,14 +57,20 @@ class Device {
   auto addValidation(const char* validation) -> void;
   auto score() -> float;
   auto checkSupport(vk::SurfaceKHR surface) const -> void;
-  inline auto device() const -> vk::Device {return this->gpu;}
-  inline auto p_device() const -> vk::PhysicalDevice {return this->physical_device;}
-  inline auto graphics() -> Queue&  { return this->queues[GRAPHICS]; }
-  inline auto compute() -> Queue&  { return this->queues[COMPUTE]; }
-  inline auto transfer() -> Queue&  { return this->queues[TRANSFER]; }
-  inline auto sparse() -> Queue& { return this->queues[SPARSE]; } 
-  inline auto allocationCB() const -> vk::AllocationCallbacks* {return this->allocate_cb;}
-  inline auto dispatch() const -> const vk::DispatchLoaderDynamic& {return this->m_dispatch;}
+  inline auto device() const -> vk::Device { return this->gpu; }
+  inline auto p_device() const -> vk::PhysicalDevice {
+    return this->physical_device;
+  }
+  inline auto graphics() -> Queue& { return this->queues[GRAPHICS]; }
+  inline auto compute() -> Queue& { return this->queues[COMPUTE]; }
+  inline auto transfer() -> Queue& { return this->queues[TRANSFER]; }
+  inline auto sparse() -> Queue& { return this->queues[SPARSE]; }
+  inline auto allocationCB() const -> vk::AllocationCallbacks* {
+    return this->allocate_cb;
+  }
+  inline auto dispatch() const -> const vk::DispatchLoaderDynamic& {
+    return this->m_dispatch;
+  }
   auto memoryProperties() -> vk::PhysicalDeviceMemoryProperties&;
   auto heaps() const -> const std::vector<GpuMemoryHeap>&;
 

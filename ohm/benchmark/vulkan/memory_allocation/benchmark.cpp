@@ -38,11 +38,6 @@ BENCHMARK(bench_memory_allocation_from_pool)
     ->Range(1024, 524288);
 
 int main(int argc, char** argv) {
-#ifdef Ohm_Debug
-  ohm::System<API>::setDebugParameter("VK_LAYER_KHRONOS_validation");
-  ohm::System<API>::setDebugParameter(
-      "VK_LAYER_LUNARG_standard_validation");
-#endif
   ohm::System<API>::initialize();
 
   benchmark::Initialize(&argc, argv);

@@ -15,11 +15,17 @@ class System {
   static auto setParameter(std::string_view param) -> void;
   static auto setDebugParameter(std::string_view param) -> void;
   static auto devices() -> std::vector<Gpu>;
+  static auto shutdown() -> void;
 };
 
 template <typename API>
 auto System<API>::initialize() -> void {
   API::System::initialize();
+}
+
+template <typename API>
+auto System<API>::shutdown() -> void {
+  API::System::shutdown();
 }
 
 template <typename API>

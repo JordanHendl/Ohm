@@ -22,8 +22,9 @@ class Exception : public std::exception {
   Error m_error;
 };
 
-/** Throw function declaration. On a debug build of the library, checks and throws.
- * On a non-debug build, the condition and exception handling is compiled out.
+/** Throw function declaration. On a debug build of the library, checks and
+ * throws. On a non-debug build, the condition and exception handling is
+ * compiled out.
  */
 #ifdef Ohm_Debug
 #define OhmException(cond, error, description) \

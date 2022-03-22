@@ -54,6 +54,7 @@ class Memory {
   auto size() const -> size_t;
   auto type() const -> HeapType;
   auto handle() const -> int32_t;
+
  private:
   int m_gpu;
   int32_t m_handle;
@@ -83,7 +84,8 @@ Memory<API, Allocator>::Memory(int gpu, size_t size) {
   auto heap_index = Allocator::chooseHeap(gpu, heaps, HeapType::GpuOnly, size);
 
   this->m_gpu = gpu;
-  this->m_handle = Allocator::allocate(gpu, HeapType::GpuOnly, heap_index, size);
+  this->m_handle =
+      Allocator::allocate(gpu, HeapType::GpuOnly, heap_index, size);
 }
 
 template <typename API, typename Allocator>
@@ -119,7 +121,7 @@ auto Memory<API, Allocator>::operator=(Memory<API, Allocator>&& mv)
 
   mv.m_handle = -1;
   mv.m_gpu = 0;
-  
+
   return *this;
 }
 
@@ -168,7 +170,7 @@ auto DefaultAllocator<API>::allocate(int gpu, HeapType type, int heap_index,
 
 template <typename API>
 auto DefaultAllocator<API>::destroy(int32_t handle) -> void {
-  API::Memory::destroy(handle);
+  if (handle >= 0) API::Memory::destroy(handle);
 }
 }  // namespace ohm
 

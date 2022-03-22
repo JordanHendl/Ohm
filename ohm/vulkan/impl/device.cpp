@@ -5,6 +5,7 @@
 #define VULKAN_HPP_NO_EXCEPTIONS
 
 #include "device.h"
+#include <memory>
 #include "api/exception.h"
 #include "error.h"
 #include "instance.h"
@@ -21,22 +22,41 @@ Device::Device() {
   this->m_score = 0.0f;
 }
 
-Device::Device(Device&& mv) { *this = mv; }
+Device::Device(Device&& mv) { *this = std::move(mv); }
 
-auto Device::operator=(const Device& cpy) -> Device& {
-  this->allocate_cb = cpy.allocate_cb;
-  this->gpu = cpy.gpu;
-  this->physical_device = cpy.physical_device;
-  this->surface = cpy.surface;
-  this->queue_props = cpy.queue_props;
-  this->properties = cpy.properties;
-  this->features = cpy.features;
-  this->m_dispatch = cpy.m_dispatch;
-  this->queues = cpy.queues;
-  this->id = cpy.id;
-  this->extensions = cpy.extensions;
-  this->validation = cpy.validation;
-  this->m_score = cpy.m_score;
+Device::~Device() {
+  if (this->gpu) {
+    this->gpu.destroy(this->allocate_cb, ovk::system().instance.dispatch());
+  }
+}
+
+auto Device::operator=(Device&& mv) -> Device& {
+  this->allocate_cb = mv.allocate_cb;
+  this->gpu = mv.gpu;
+  this->physical_device = mv.physical_device;
+  this->surface = mv.surface;
+  this->queue_props = mv.queue_props;
+  this->properties = mv.properties;
+  this->features = mv.features;
+  this->m_dispatch = mv.m_dispatch;
+  this->queues = mv.queues;
+  this->id = mv.id;
+  this->extensions = mv.extensions;
+  this->validation = mv.validation;
+  this->m_score = mv.m_score;
+
+  mv.allocate_cb = nullptr;
+  mv.gpu = nullptr;
+  mv.physical_device = nullptr;
+  mv.surface = nullptr;
+  mv.properties = vk::PhysicalDeviceProperties();
+  mv.features = vk::PhysicalDeviceFeatures();
+  mv.id = 0;
+  mv.m_score = 0.f;
+  mv.queue_props.clear();
+  mv.extensions.clear();
+  mv.validation.clear();
+  for (auto& q : mv.queues) q = Queue();
 
   return *this;
 }

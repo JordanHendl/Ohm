@@ -15,7 +15,9 @@ namespace ovk {
 class Instance {
  public:
   Instance();
+  Instance(Instance&& mv);
   ~Instance();
+  auto operator=(Instance&& mv) -> Instance&;
   auto initialize(io::Dlloader& loader, vk::AllocationCallbacks* callback)
       -> void;
   auto initialize(vk::Instance import, vk::PhysicalDevice import_device,

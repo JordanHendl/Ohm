@@ -5,7 +5,7 @@ if( WIN32 )
 endif() 
 
 if( UNIX )
-  set( CPACK_GENERATOR                       ${GENERATOR}                                  )
+  set( CPACK_GENERATOR                       ${Generator}                                  )
   set( CPACK_PACKAGING_INSTALL_PREFIX        ${CMAKE_INSTALL_PREFIX}/${CMAKE_PROJECT_NAME} )
   set( CPACK_PACKAGE_INSTALL_DIRECTORY       ${CMAKE_PROJECT_NAME}                         )
 

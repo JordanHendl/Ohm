@@ -4,12 +4,12 @@
 #include "api/system.h"
 
 #include <vulkan/vulkan.hpp>
+#include "buffer.h"
+#include "command_buffer.h"
 #include "device.h"
 #include "instance.h"
 #include "io/dlloader.h"
 #include "memory.h"
-#include "buffer.h"
-#include "command_buffer.h"
 
 namespace ohm {
 namespace ovk {
@@ -28,22 +28,32 @@ struct System {
   std::array<CommandBuffer, NUM_CACHE> commands;
   vk::AllocationCallbacks* allocate_cb;
 
+  auto shutdown() -> void {
+    for (auto& thing : this->buffer) {
+      auto tmp = std::move(thing);
+    }
+    for (auto& thing : this->memory) {
+      auto tmp = std::move(thing);
+    }
+    for (auto& thing : this->commands) {
+      auto tmp = std::move(thing);
+    }
+
+    for (auto& thing : this->devices) {
+      ovk::clearPools(thing);
+      auto tmp = std::move(thing);
+    }
+
+    { auto tmp = std::move(this->instance); }
+    this->loader.reset();
+  }
+
   System() {
     this->system_name = "";
     this->allocate_cb = nullptr;
   }
-  
-  ~System() {
-    for(auto& thing : this->buffer) {
-      auto tmp = std::move(thing);
-    }
-    for(auto& thing : this->memory) {
-      auto tmp = std::move(thing);
-    }
-    for(auto& thing : this->commands) {
-      auto tmp = std::move(thing);
-    }
-  }
+
+  ~System() { this->shutdown(); }
 };
 
 auto system() -> System&;

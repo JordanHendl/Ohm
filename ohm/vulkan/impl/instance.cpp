@@ -201,7 +201,23 @@ vk::PhysicalDevice Instance::device(unsigned id) {
 
 Instance::Instance() {}
 
+Instance::Instance(Instance&& mv) { *this = std::move(mv); }
+
 Instance::~Instance() {
+  if (this->m_instance) {
+    this->m_instance.destroy(nullptr, this->m_dispatch);
+    SDL_Quit();
+  }
+}
+
+auto Instance::operator=(Instance&& mv) -> Instance& {
+  this->m_devices = mv.m_devices;
+  this->m_dispatch = mv.m_dispatch;
+  this->m_instance = mv.m_instance;
+
+  mv.m_devices.clear();
+  mv.m_instance = nullptr;
+  return *this;
 }
 
 vk::ApplicationInfo Instance::makeAppInfo() {

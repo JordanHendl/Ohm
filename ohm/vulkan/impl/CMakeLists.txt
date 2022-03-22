@@ -7,6 +7,7 @@ set(vulkan_impl_srcs
      device.cpp
      memory.cpp
      buffer.cpp
+     image.cpp
      command_buffer.cpp
    )
 

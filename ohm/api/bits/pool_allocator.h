@@ -1,8 +1,8 @@
 #pragma once
+#include <mutex>
 #include <vector>
 #include "../exception.h"
 #include "../memory.h"
-#include <mutex>
 
 namespace ohm {
 
@@ -35,14 +35,6 @@ struct PoolAllocator {
     int32_t block_size = 2048;
     int32_t requested_memory = 1 << 26;
     std::mutex mutex;
-    
-    ~PoolAllocatorData() {
-      for(auto& heap : heaps) {
-        if(heap.id >= 0) {
-          API::Memory::destroy(heap.id);
-        }
-      }
-    }
   };
 
   static PoolAllocatorData data;
@@ -58,9 +50,9 @@ auto PoolAllocator<API>::chooseHeap(int gpu,
   using alloc = PoolAllocator<API>;
   const auto num_blocks = alloc::data.requested_memory / alloc::data.block_size;
   auto index = 0;
-  
+
   std::unique_lock<std::mutex> lock(alloc::data.mutex);
-  
+
   if (alloc::data.heaps.empty()) {
     alloc::data.heaps.resize(heaps.size());
     for (auto& heap : heaps) {
@@ -144,7 +136,7 @@ auto PoolAllocator<API>::destroy(int32_t handle) -> void {
         found_heap = true;
       }
 
-      if (found_heap) {
+      if (found_heap && handle >= 0) {
         API::Memory::destroy(handle);
         return;
       }

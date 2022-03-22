@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
+#include <array>
 #include <iostream>
 #include <memory>
-#include <array>
 #include "api/bits/pool_allocator.h"
 #include "api/ohm.h"
 #include "vulkan/vulkan_impl.h"
@@ -65,10 +65,12 @@ auto test_pool() -> bool {
 
 auto test_move() -> bool {
   constexpr auto mem_size = 1024;
-  auto memory_1 = Memory<API, PoolAllocator<API>>(0, HeapType::HostVisible, mem_size);
+  auto memory_1 =
+      Memory<API, PoolAllocator<API>>(0, HeapType::HostVisible, mem_size);
   auto memory_2 = Memory<API, PoolAllocator<API>>(std::move(memory_1));
-  
-  return memory_1.handle() < 0 && memory_2.handle() >= 0 && memory_2.type() & HeapType::HostVisible;
+
+  return memory_1.handle() < 0 && memory_2.handle() >= 0 &&
+         memory_2.type() & HeapType::HostVisible;
 }
 }  // namespace memory
 
@@ -88,7 +90,36 @@ auto test_mapped_allocation() -> bool {
   auto array = Array<API, float>(0, 1024, HeapType::HostVisible);
   return array.size() > 0 && array.handle() >= 0;
 }
+}  // namespace array
+namespace image {
+auto test_creation() -> bool {
+  auto image = Image<API>(0, {1280, 1024, ImageFormat::RGBA8});
+  return image.gpu() == 0;
 }
+
+auto test_memory_allocation() -> bool {
+  auto image = Image<API>(0, {1280, 1024, ImageFormat::RGBA8});
+  const auto& memory = image.memory();
+  return memory.handle() >= 0 && memory.size() > 0;
+}
+
+auto test_getters() -> bool {
+  auto info = ImageInfo();
+  info.width = 1280;
+  info.height = 1024;
+  info.layers = 2;
+  info.mip_maps = 1;
+  info.is_cubemap = false;
+
+  auto image = Image<API>(0, info);
+
+  auto pass = image.gpu() == 0 && image.format() == info.format &&
+              image.format() == info.format && image.width() == info.width &&
+              image.height() == info.height;
+
+  return pass;
+}
+}  // namespace image
 
 namespace commands {
 auto test_creation() -> bool {
@@ -106,25 +137,25 @@ auto test_host_to_array_copy() -> bool {
   auto commands = Commands<API>(0);
   auto array = Array<API, int>(0, 1024, HeapType::HostVisible);
   std::array<int, 1024> host_array;
-  
-  for(auto& num : host_array) {
+
+  for (auto& num : host_array) {
     num = 1337;
   }
-  
+
   commands.begin();
   commands.copy(host_array.data(), array);
   commands.submit();
-  
-  for(auto& num : host_array) {
+
+  for (auto& num : host_array) {
     num = 0;
   }
-  
+
   commands.begin();
   commands.copy(array, host_array.data());
   commands.submit();
-  
-  for(auto& num : host_array) {
-    if(num != 1337) return false;
+
+  for (auto& num : host_array) {
+    if (num != 1337) return false;
   }
   return true;
 }
@@ -136,50 +167,49 @@ auto test_gpu_array_copy() -> bool {
   auto array_1 = Array<API, int>(0, cache_size, HeapType::GpuOnly);
   auto array_2 = Array<API, int>(0, cache_size, HeapType::GpuOnly);
   std::array<int, cache_size> host_array;
-  
-  for(auto& num : host_array) {
+
+  for (auto& num : host_array) {
     num = 1337;
   }
-  
+
+  commands.begin();
   commands.copy(host_array.data(), array_host);
   commands.copy(array_host, array_1);
   commands.copy(array_host, array_2);
   commands.submit();
   commands.synchronize();
-  
-  for(auto& num : host_array) {
+
+  for (auto& num : host_array) {
     num = 0;
   }
-  
+
   commands.begin();
   commands.copy(host_array.data(), array_host);
   commands.copy(array_host, array_1);
   commands.copy(array_2, array_host);
   commands.submit();
   commands.synchronize();
-  
+
   commands.copy(array_host, host_array.data());
-  
-  for(auto& num : host_array) {
-    if(num != 1337)
-      return false;
+
+  for (auto& num : host_array) {
+    if (num != 1337) return false;
   }
-  
+
   commands.begin();
   commands.copy(array_1, array_host);
   commands.submit();
   commands.synchronize();
-  
+
   commands.copy(array_host, host_array.data());
-  
-  for(auto& num : host_array) {
-    if(num != 0)
-      return false;
+
+  for (auto& num : host_array) {
+    if (num != 0) return false;
   }
-  
+
   return true;
 }
-}
+}  // namespace commands
 }  // namespace ohm
 
 TEST(Vulkan, System) {
@@ -213,9 +243,12 @@ auto main(int argc, char* argv[]) -> int {
 #ifdef Ohm_Debug
   ohm::System<ohm::API>::setDebugParameter("VK_LAYER_KHRONOS_validation");
   ohm::System<ohm::API>::setDebugParameter(
+
       "VK_LAYER_LUNARG_standard_validation");
 #endif
   ohm::System<ohm::API>::initialize();
   testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  auto success = RUN_ALL_TESTS();
+  ohm::System<ohm::API>::shutdown();
+  return success;
 }
