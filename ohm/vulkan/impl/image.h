@@ -12,13 +12,11 @@ auto convert(vk::Format format) -> ImageFormat;
 
 class Image {
  public:
-  Image() = default;
-  Image(const Image& orig);
+  Image();
   Image(const Image& orig, unsigned layer);
   Image(Image&& mv);
   ~Image();
   auto operator=(Image&& mv) -> Image&;
-  auto operator=(const Image& cpy) -> Image&;
   auto initialize(Device& gpu, const ImageInfo& info,
                   vk::ImageLayout start = vk::ImageLayout::eGeneral) -> size_t;
   auto initialize(Device& gpu, const ImageInfo& info, vk::Image prealloc,

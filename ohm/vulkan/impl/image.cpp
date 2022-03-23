@@ -161,6 +161,46 @@ auto Image::createImage() -> vk::Image {
   return result;
 }
 
+Image::Image() {
+  this->m_layout = vk::ImageLayout::eUndefined;
+  this->m_old_layout = vk::ImageLayout::eUndefined;
+  this->m_type = vk::ImageType::e2D;
+  this->m_num_samples = vk::SampleCountFlagBits::e1;
+  this->m_preallocated = false;
+  this->m_tiling = vk::ImageTiling::eOptimal;
+  this->m_memory = nullptr;
+  this->m_device = nullptr;
+  this->m_usage_flags = vk::ImageUsageFlagBits::eSampled;
+  this->m_view_type = vk::ImageViewType::e2D;
+  this->m_layer = 0;
+  this->m_should_delete = true;
+  this->m_subresource.setAspectMask(vk::ImageAspectFlagBits::eColor);
+  this->m_subresource.setBaseArrayLayer(0);
+  this->m_subresource.setLayerCount(this->layers());
+  this->m_subresource.setMipLevel(0);
+}
+
+Image::Image(const Image& orig, unsigned layer) {
+  this->m_layout = orig.m_layout;
+  this->m_old_layout = orig.m_old_layout;
+  this->m_type = orig.m_type;
+  this->m_num_samples = orig.m_num_samples;
+  this->m_preallocated = orig.m_preallocated;
+  this->m_tiling = orig.m_tiling;
+  this->m_memory = orig.m_memory;
+  this->m_device = orig.m_device;
+  this->m_usage_flags = orig.m_usage_flags;
+  this->m_view_type = orig.m_view_type;
+  this->m_subresource = orig.m_subresource;
+
+  this->m_should_delete = false;
+  this->m_layer = layer;
+  this->m_subresource.setBaseArrayLayer(layer);
+  this->m_subresource.setLayerCount(1);
+}
+
+Image::Image(Image&& mv) { *this = std::move(mv); }
+
 Image::~Image() {
   if (this->m_should_delete) {
     if (this->m_image && this->m_device) {
@@ -195,14 +235,40 @@ Image::~Image() {
   this->m_layout = vk::ImageLayout::eUndefined;
 }
 
-Image::Image(const Image& orig, unsigned layer) {
-  this->m_should_delete = false;
-  this->m_layer = layer;
-  this->m_subresource.setBaseArrayLayer(layer);
-  this->m_subresource.setLayerCount(1);
-}
+auto Image::operator=(Image&& mv) -> Image& {
+  this->m_layout = mv.m_layout;
+  this->m_old_layout = mv.m_old_layout;
+  this->m_type = mv.m_type;
+  this->m_num_samples = mv.m_num_samples;
+  this->m_preallocated = mv.m_preallocated;
+  this->m_tiling = mv.m_tiling;
+  this->m_memory = mv.m_memory;
+  this->m_device = mv.m_device;
+  this->m_usage_flags = mv.m_usage_flags;
+  this->m_view_type = mv.m_view_type;
+  this->m_subresource = mv.m_subresource;
+  this->m_should_delete = mv.m_should_delete;
+  this->m_layer = mv.m_layer;
 
-auto Image::operator=(const Image& src) -> Image& { return *this; }
+  mv.m_layout = vk::ImageLayout::eUndefined;
+  mv.m_old_layout = vk::ImageLayout::eUndefined;
+  mv.m_type = vk::ImageType::e2D;
+  mv.m_num_samples = vk::SampleCountFlagBits::e1;
+  mv.m_preallocated = false;
+  mv.m_tiling = vk::ImageTiling::eOptimal;
+  mv.m_memory = nullptr;
+  mv.m_device = nullptr;
+  mv.m_usage_flags = vk::ImageUsageFlagBits::eSampled;
+  mv.m_view_type = vk::ImageViewType::e2D;
+  mv.m_layer = 0;
+  mv.m_should_delete = true;
+  mv.m_subresource.setAspectMask(vk::ImageAspectFlagBits::eColor);
+  mv.m_subresource.setBaseArrayLayer(0);
+  mv.m_subresource.setLayerCount(this->layers());
+  mv.m_subresource.setMipLevel(0);
+
+  return *this;
+}
 
 auto Image::initialize(Device& device, const ImageInfo& info,
                        vk::ImageLayout start) -> size_t {

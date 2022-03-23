@@ -5,22 +5,17 @@
 #define VULKAN_HPP_NO_EXCEPTIONS
 
 #include "command_buffer.h"
+#include <array>
+#include <climits>
+#include <iostream>
+#include <map>
+#include <vector>
 #include "api/exception.h"
 #include "buffer.h"
 #include "device.h"
 #include "error.h"
 #include "image.h"
 #include "memory.h"
-//#include "Descriptor.h"
-//#include "Pipeline.h"
-//#include "RenderPass.h"
-//#include "Swapchain.h"
-//#include "Texture.h"
-#include <array>
-#include <climits>
-#include <iostream>
-#include <map>
-#include <vector>
 
 namespace ohm {
 namespace ovk {
@@ -55,61 +50,6 @@ auto clearPools(Device& device) -> void {
     device.device().destroy(pool.second, nullptr, device.dispatch());
   }
   queue_map.clear();
-}
-
-auto CommandBuffer::advance() -> void {
-  this->m_current_id = (this->m_current_id + 1) % this->m_cmd_buffers.size();
-}
-
-auto CommandBuffer::record() -> void {
-  if (!this->m_recording) {
-    this->unsafe_synchronize();
-    if (this->m_parent) {
-      OhmException(!this->m_parent->m_recording, Error::APIError,
-                   "Attempting to record to a child command buffer without "
-                   "beginning the parent first. Children must have their "
-                   "begin()/end() combo in the parent's begin()/end() combo.");
-    }
-
-    for (auto& cmd : this->m_cmd_buffers) {
-      error(cmd.begin(this->m_begin_info, this->m_device->dispatch()));
-    }
-  }
-  this->m_recording = true;
-}
-
-auto CommandBuffer::end() -> void {
-  std::unique_lock<std::mutex> lock(this->m_lock);
-  this->unsafe_end();
-}
-
-auto CommandBuffer::unsafe_end() -> void {
-  if (this->m_recording)
-    for (unsigned index = 0; index < this->m_cmd_buffers.size(); index++) {
-      auto& cmd = this->m_cmd_buffers[index];
-      if (this->m_recording) error(cmd.end(this->m_device->dispatch()));
-    }
-
-  this->m_recording = false;
-}
-
-void CommandBuffer::append(
-    std::function<void(vk::CommandBuffer& buffer, unsigned index)> function) {
-  for (unsigned index = 0; index < this->m_cmd_buffers.size(); index++) {
-    function(this->m_cmd_buffers[index], index);
-  }
-}
-
-unsigned CommandBuffer::previousID() {
-  return this->m_current_id == 0 ? BUFFER_COUNT - 1 : this->m_current_id - 1;
-}
-
-void CommandBuffer::unsafe_synchronize() {
-  auto& device = *this->m_device;
-  for (auto& sync : this->m_sync_info) {
-    error(device.device().waitForFences(1, &sync.fence, true, UINT64_MAX,
-                                        device.dispatch()));
-  }
 }
 
 CommandBuffer::CommandBuffer() {
@@ -295,12 +235,69 @@ auto CommandBuffer::operator=(CommandBuffer&& mv) -> CommandBuffer& {
 
   return *this;
 }
-void CommandBuffer::begin() {
+
+auto CommandBuffer::advance() -> void {
+  this->m_current_id = (this->m_current_id + 1) % this->m_cmd_buffers.size();
+}
+
+auto CommandBuffer::record() -> void {
+  if (!this->m_recording) {
+    this->unsafe_synchronize();
+    if (this->m_parent) {
+      OhmException(!this->m_parent->m_recording, Error::APIError,
+                   "Attempting to record to a child command buffer without "
+                   "beginning the parent first. Children must have their "
+                   "begin()/end() combo in the parent's begin()/end() combo.");
+    }
+
+    for (auto& cmd : this->m_cmd_buffers) {
+      error(cmd.begin(this->m_begin_info, this->m_device->dispatch()));
+    }
+  }
+  this->m_recording = true;
+}
+
+auto CommandBuffer::end() -> void {
+  std::unique_lock<std::mutex> lock(this->m_lock);
+  this->unsafe_end();
+}
+
+auto CommandBuffer::unsafe_end() -> void {
+  if (this->m_recording)
+    for (unsigned index = 0; index < this->m_cmd_buffers.size(); index++) {
+      auto& cmd = this->m_cmd_buffers[index];
+      if (this->m_recording) error(cmd.end(this->m_device->dispatch()));
+    }
+
+  this->m_recording = false;
+}
+
+auto CommandBuffer::append(
+    std::function<void(vk::CommandBuffer& buffer, unsigned index)> function)
+    -> void {
+  for (unsigned index = 0; index < this->m_cmd_buffers.size(); index++) {
+    function(this->m_cmd_buffers[index], index);
+  }
+}
+
+auto CommandBuffer::previousID() -> unsigned {
+  return this->m_current_id == 0 ? BUFFER_COUNT - 1 : this->m_current_id - 1;
+}
+
+auto CommandBuffer::unsafe_synchronize() -> void {
+  auto& device = *this->m_device;
+  for (auto& sync : this->m_sync_info) {
+    error(device.device().waitForFences(1, &sync.fence, true, UINT64_MAX,
+                                        device.dispatch()));
+  }
+}
+
+auto CommandBuffer::begin() -> void {
   std::unique_lock<std::mutex> lock(this->m_lock);
   this->record();
 }
 
-void CommandBuffer::copy(const Buffer& src, Buffer& dst, size_t) {
+auto CommandBuffer::copy(const Buffer& src, Buffer& dst, size_t) -> void {
   vk::BufferCopy region;
   vk::MemoryBarrier barrier;
 
@@ -325,73 +322,82 @@ void CommandBuffer::copy(const Buffer& src, Buffer& dst, size_t) {
   this->m_dirty = true;
 }
 
-//    void CommandBuffer::copy( const Buffer& src, Texture& dst, size_t )
-//    {
-//      vk::BufferImageCopy info   ;
-//      vk::Extent3D        extent ;
-//
-//      extent.setWidth ( dst.width () ) ;
-//      extent.setHeight( dst.height() ) ;
-//      extent.setDepth ( 1            ) ;
-//
-//      info.setImageExtent      ( extent                ) ;
-//      info.setBufferImageHeight( 0                     ) ;
-//      info.setBufferRowLength  ( 0                     ) ;
-//      info.setImageOffset      ( dst.memory().offset() ) ;
-//      info.setImageSubresource ( dst.subresource()     ) ;
-//
-//      std::unique_lock<std::mutex> lock( this->m_lock ) ;
-//      this->m_record() ;
-//
-//      auto function = [&]( vk::CommandBuffer& cmd, size_t )
-//      {
-//        cmd.copyBufferToImage( src.buffer(), dst.image(),
-//        vk::ImageLayout::eGeneral, 1, &info, this->m_device->dispatch() ) ;
-//      };
-//
-//      auto dst_old_layout = dst.layout() ;
-//
-//      this->transition( dst, vk::ImageLayout::eGeneral ) ;
-//      this->m_append( function ) ;
-//      if( dst_old_layout != vk::ImageLayout::eUndefined ) this->transition(
-//      dst, dst_old_layout ) ;
-//
-//      this->m_dirty = true ;
-//    }
+auto CommandBuffer::copy(const Buffer& src, Image& dst, size_t) -> void {
+  vk::BufferImageCopy info;
+  vk::Extent3D extent;
 
-//    void CommandBuffer::copy( Texture& src, Buffer& dst, size_t )
-//    {
-//      vk::BufferImageCopy info   ;
-//      vk::Extent3D        extent ;
-//
-//      extent.setWidth ( src.width () ) ;
-//      extent.setHeight( src.height() ) ;
-//      extent.setDepth ( src.layers() ) ;
-//
-//      info.setImageExtent      ( extent                ) ;
-//      info.setBufferImageHeight( 0                     ) ;
-//      info.setBufferRowLength  ( 0                     ) ;
-//      info.setImageOffset      ( dst.memory().offset() ) ;
-//      info.setImageSubresource ( src.subresource()     ) ;
-//
-//      auto function = [&]( vk::CommandBuffer& cmd, size_t )
-//      {
-//        cmd.copyImageToBuffer( src.image(), vk::ImageLayout::eGeneral,
-//        dst.buffer(), 1, &info, this->m_device->dispatch() ) ;
-//      };
-//
-//      std::unique_lock<std::mutex> lock( this->m_lock ) ;
-//      this->m_record() ;
-//
-//      auto src_old_layout = src.layout() ;
-//
-//      this->transition( src, vk::ImageLayout::eGeneral ) ;
-//      this->m_append( function ) ;
-//      if( src_old_layout != vk::ImageLayout::eUndefined ) this->transition(
-//      src, src_old_layout ) ; this->m_dirty = true ;
-//    }
+  extent.setWidth(dst.width());
+  extent.setHeight(dst.height());
+  extent.setDepth(1);
 
-void CommandBuffer::copy(const Buffer& src, unsigned char* dst, size_t amt) {
+  info.setImageExtent(extent);
+  info.setBufferImageHeight(0);
+  info.setBufferRowLength(0);
+  info.setImageOffset(dst.memory().offset);
+  info.setImageSubresource(dst.subresource());
+
+  std::unique_lock<std::mutex> lock(this->m_lock);
+  OhmException(!this->m_recording, Error::APIError,
+               "Attempting to record to a command buffer without starting a "
+               "record operation.");
+
+  auto function = [&](vk::CommandBuffer& cmd, size_t) {
+    cmd.copyBufferToImage(src.buffer(), dst.image(), vk::ImageLayout::eGeneral,
+                          1, &info, this->m_device->dispatch());
+  };
+
+  auto dst_old_layout = dst.layout();
+
+  if (dst.layout() != vk::ImageLayout::eGeneral)
+    this->transition(dst, vk::ImageLayout::eGeneral);
+
+  this->append(function);
+
+  if (dst_old_layout != vk::ImageLayout::eUndefined)
+    this->transition(dst, dst_old_layout);
+
+  this->m_dirty = true;
+}
+
+auto CommandBuffer::copy(Image& src, Buffer& dst, size_t) -> void {
+  vk::BufferImageCopy info;
+  vk::Extent3D extent;
+
+  extent.setWidth(src.width());
+  extent.setHeight(src.height());
+  extent.setDepth(src.layers());
+
+  info.setImageExtent(extent);
+  info.setBufferImageHeight(0);
+  info.setBufferRowLength(0);
+  info.setImageOffset(dst.memory().offset);
+  info.setImageSubresource(src.subresource());
+
+  auto function = [&](vk::CommandBuffer& cmd, size_t) {
+    cmd.copyImageToBuffer(src.image(), vk::ImageLayout::eGeneral, dst.buffer(),
+                          1, &info, this->m_device->dispatch());
+  };
+
+  std::unique_lock<std::mutex> lock(this->m_lock);
+  OhmException(!this->m_recording, Error::APIError,
+               "Attempting to record to a command buffer without starting a "
+               "record operation.");
+
+  auto src_old_layout = src.layout();
+
+  if (src.layout() != vk::ImageLayout::eGeneral)
+    this->transition(src, vk::ImageLayout::eGeneral);
+
+  this->append(function);
+
+  if (src_old_layout != vk::ImageLayout::eUndefined)
+    this->transition(src, src_old_layout);
+
+  this->m_dirty = true;
+}
+
+auto CommandBuffer::copy(const Buffer& src, unsigned char* dst, size_t amt)
+    -> void {
   unsigned char* ptr;
 
   auto copy_amt = amt == 0 ? src.count() : amt;
@@ -403,7 +409,8 @@ void CommandBuffer::copy(const Buffer& src, unsigned char* dst, size_t amt) {
   src.memory().unmap();
 }
 
-void CommandBuffer::copy(const unsigned char* src, Buffer& dst, size_t amt) {
+auto CommandBuffer::copy(const unsigned char* src, Buffer& dst, size_t amt)
+    -> void {
   void* ptr;
 
   auto copy_amt = amt == 0 ? dst.count() : amt;
@@ -416,7 +423,7 @@ void CommandBuffer::copy(const unsigned char* src, Buffer& dst, size_t amt) {
   dst.memory().unmap();
 }
 
-void CommandBuffer::copy(Image& src, Image& dst, size_t) {
+auto CommandBuffer::copy(Image& src, Image& dst, size_t) -> void {
   vk::ImageCopy region;
   vk::Extent3D extent;
 
@@ -454,9 +461,11 @@ void CommandBuffer::copy(Image& src, Image& dst, size_t) {
   this->m_dirty = true;
 }
 
-void CommandBuffer::clearDependancies() { this->m_dependancies.clear(); }
+auto CommandBuffer::clearDependancies() -> void {
+  this->m_dependancies.clear();
+}
 
-void CommandBuffer::addDependancy(vk::Semaphore semaphore) {
+auto CommandBuffer::addDependancy(vk::Semaphore semaphore) -> void {
   this->m_dependancies.push_back(semaphore);
 }
 
@@ -478,7 +487,7 @@ auto CommandBuffer::bind(Descriptor& desc) -> void {
   //        this->m_dirty = true ;
 }
 
-void CommandBuffer::blit(Image& src, Image& dst, Filter in_filter) {
+auto CommandBuffer::blit(Image& src, Image& dst, Filter in_filter) -> void {
   vk::ImageBlit blit;
   vk::Filter filter;
 
@@ -532,160 +541,22 @@ void CommandBuffer::blit(Image& src, Image& dst, Filter in_filter) {
   this->m_dirty = true;
 }
 
-//    auto CommandBuffer::blit( RenderPass& src, RenderPass& dst, Filter
-//    imp_filter, unsigned, unsigned framebuffer ) -> void
-//    {
-//      vk::ImageBlit blit   ;
-//      vk::Filter    filter ;
-//
-//      switch( imp_filter )
-//      {
-//        case Filter::Cubic   : filter = vk::Filter::eCubicIMG ; break ;
-//        case Filter::Linear  : filter = vk::Filter::eLinear   ; break ;
-//        case Filter::Nearest : filter = vk::Filter::eNearest  ; break ;
-//        default : filter = vk::Filter::eLinear ; break ;
-//      };
-//
-//      std::array<vk::Offset3D, 2> src_offsets = { vk::Offset3D( 0, 0, 0 ),
-//      vk::Offset3D( src.area().extent.width, src.area().extent.height, 1 ) };
-//      std::array<vk::Offset3D, 2> dst_offsets = { vk::Offset3D( 0, 0, 0 ),
-//      vk::Offset3D( dst.area().extent.width, dst.area().extent.height, 1 ) };
-//
-//      blit.setSrcOffsets( src_offsets ) ;
-//      blit.setDstOffsets( dst_offsets ) ;
-//
-//      auto function = [&]( vk::CommandBuffer& cmd, unsigned index )
-//      {
-//        auto src_index = framebuffer + ( index * src.subpasses()[ 0
-//        ].inputAttachmentCount ) ; auto dst_index = framebuffer + ( index *
-//        dst.subpasses()[ 0 ].inputAttachmentCount ) ;
-//
-//        auto& src_tex = src.framebuffers()[ src_index ] ;
-//        auto& dst_tex = dst.framebuffers()[ dst_index ] ;
-//
-//        blit.setSrcSubresource( src_tex.subresource() ) ;
-//        blit.setDstSubresource( dst_tex.subresource() ) ;
-//
-//        auto src_old_layout = src_tex.layout() ;
-//        auto dst_old_layout = dst_tex.layout() ;
-//
-//        this->transitionSingle( src_tex, cmd, vk::ImageLayout::eGeneral ) ;
-//        this->transitionSingle( dst_tex, cmd, vk::ImageLayout::eGeneral ) ;
-//        cmd.blitImage( src_tex.image(), src_tex.layout(), dst_tex.image(),
-//        dst_tex.layout(), 1, &blit, filter, this->m_device->dispatch() ) ; if(
-//        src_old_layout != vk::ImageLayout::eUndefined )
-//        this->transitionSingle( dst_tex, cmd, dst_old_layout ) ; if(
-//        dst_old_layout != vk::ImageLayout::eUndefined )
-//        this->transitionSingle( src_tex, cmd, src_old_layout ) ;
-//      };
-//
-//      std::unique_lock<std::mutex> lock( this->m_lock ) ;
-//      this->m_record() ;
-//      this->m_append( function ) ;
-//      this->m_dirty = true ;
-//    }
+auto CommandBuffer::blit(RenderPass& src, RenderPass& dst, Filter in_filter,
+                         unsigned, unsigned framebuffer) -> void {}
 
-//    auto CommandBuffer::blit( RenderPass& src, Swapchain& dst, Filter
-//    imp_filter, unsigned , unsigned framebuffer ) -> void
-//    {
-//      vk::ImageBlit blit   ;
-//      vk::Filter    filter ;
-//
-//      switch( imp_filter )
-//      {
-//        case Filter::Cubic   : filter = vk::Filter::eCubicIMG ; break ;
-//        case Filter::Linear  : filter = vk::Filter::eLinear   ; break ;
-//        case Filter::Nearest : filter = vk::Filter::eNearest  ; break ;
-//        default : filter = vk::Filter::eLinear ; break ;
-//      };
-//
-//      std::array<vk::Offset3D, 2> src_offsets = { vk::Offset3D( 0, 0, 0 ),
-//      vk::Offset3D( src.area().extent.width, src.area().extent.height, 1 ) };
-//      std::array<vk::Offset3D, 2> dst_offsets = { vk::Offset3D( 0, 0, 0 ),
-//      vk::Offset3D( dst.width(), dst.height()                        , 1 ) };
-//
-//      blit.setSrcOffsets    ( src_offsets       ) ;
-//      blit.setDstOffsets    ( dst_offsets       ) ;
-//
-//      auto function = [&]( vk::CommandBuffer& cmd, unsigned index )
-//      {
-//        auto& src_tex = src.framebuffers()[ framebuffer + ( index *
-//        src.subpasses()[ 0 ].inputAttachmentCount ) ] ; auto& dst_tex =
-//        dst.textures()[ index ] ;
-//
-//        blit.setSrcSubresource( src_tex.subresource() ) ;
-//        blit.setDstSubresource( dst_tex.subresource() ) ;
-//
-//        auto src_old_layout = src_tex.layout() ;
-//        auto dst_old_layout = dst_tex.layout() ;
-//
-//        this->transitionSingle( src_tex, cmd, vk::ImageLayout::eGeneral ) ;
-//        this->transitionSingle( dst_tex, cmd, vk::ImageLayout::eGeneral ) ;
-//        cmd.blitImage( src_tex.image(), src_tex.layout(), dst_tex.image(),
-//        dst_tex.layout(), 1, &blit, filter, this->m_device->dispatch() ) ; if(
-//        src_old_layout != vk::ImageLayout::eUndefined )
-//        this->transitionSingle( dst_tex, cmd, dst_old_layout ) ; if(
-//        dst_old_layout != vk::ImageLayout::eUndefined )
-//        this->transitionSingle( src_tex, cmd, src_old_layout ) ;
-//      };
-//
-//      std::unique_lock<std::mutex> lock( this->m_lock ) ;
-//      this->m_record() ;
-//      this->m_append( function ) ;
-//      this->m_dirty = true ;
-//    }
-//
-//    auto CommandBuffer::blit( Texture& src, Swapchain& dst, Filter imp_filter
-//    ) -> void
-//    {
-//      vk::ImageBlit blit   ;
-//      vk::Filter    filter ;
-//
-//      switch( imp_filter )
-//      {
-//        case Filter::Cubic   : filter = vk::Filter::eCubicIMG ; break ;
-//        case Filter::Linear  : filter = vk::Filter::eLinear   ; break ;
-//        case Filter::Nearest : filter = vk::Filter::eNearest  ; break ;
-//        default : filter = vk::Filter::eLinear ; break ;
-//      };
-//
-//      std::array<vk::Offset3D, 2> src_offsets = { vk::Offset3D( 0, 0, 0 ),
-//      vk::Offset3D( src.width(), src.height(), 1 ) }; std::array<vk::Offset3D,
-//      2> dst_offsets = { vk::Offset3D( 0, 0, 0 ), vk::Offset3D( dst.width(),
-//      dst.height(), 1 ) };
-//
-//      blit.setSrcSubresource( src.subresource() ) ;
-//      blit.setSrcOffsets    ( src_offsets       ) ;
-//      blit.setDstOffsets    ( dst_offsets       ) ;
-//      auto src_old_layout = src.layout() ;
-//
-//      auto function = [&]( vk::CommandBuffer& cmd, unsigned index )
-//      {
-//        auto& tex = dst.textures()[ index ] ;
-//        blit.setDstSubresource( tex.subresource() ) ;
-//        auto dst_old_layout = tex.layout() ;
-//
-//        this->transitionSingle( tex, cmd, vk::ImageLayout::eGeneral ) ;
-//        cmd.blitImage( src.image(), src.layout(), tex.image(), tex.layout(),
-//        1, &blit, filter, this->m_device->dispatch() ) ;
-//        this->transitionSingle( tex, cmd,  dst_old_layout ) ;
-//      };
-//
-//      std::unique_lock<std::mutex> lock( this->m_lock ) ;
-//      this->m_record() ;
-//
-//      this->transition( src, vk::ImageLayout::eGeneral ) ;
-//      this->m_append( function ) ;
-//      if( src_old_layout != vk::ImageLayout::eUndefined ) this->transition(
-//      src, src_old_layout ) ; this->m_dirty = true ;
-//    }
+auto CommandBuffer::blit(RenderPass& src, Swapchain& dst, Filter in_filter,
+                         unsigned, unsigned framebuffer) -> void {}
 
-auto CommandBuffer::detach() -> void {
-  //      this->endRenderPass() ;
-  //      this->m_render_pass = nullptr ;
+auto CommandBuffer::blit(Image& src, Swapchain& dst, Filter in_filter) -> void {
+
 }
 
+auto CommandBuffer::detach() -> void {}
+
 auto CommandBuffer::combine(CommandBuffer& child) -> void {
+  // Note, 2 locks here, but this is because we need to lock down both this
+  // command buffer and the child's to ensure no 2 threads can alter them while
+  // we're combnining them.
   std::unique_lock<std::mutex> lock(this->m_lock);
   std::unique_lock<std::mutex> lock2(child.m_lock);
   OhmException(!this->m_recording, Error::APIError,
@@ -707,7 +578,8 @@ auto CommandBuffer::cmd(unsigned index) -> vk::CommandBuffer {
   return this->m_cmd_buffers[index];
 }
 
-void CommandBuffer::draw(const Buffer& vertices, unsigned instance_count) {
+auto CommandBuffer::draw(const Buffer& vertices, unsigned instance_count)
+    -> void {
   std::unique_lock<std::mutex> lock(this->m_lock);
 
   const auto& offset = vertices.memory().offset;
@@ -726,8 +598,8 @@ void CommandBuffer::draw(const Buffer& vertices, unsigned instance_count) {
   this->m_dirty = true;
 }
 
-void CommandBuffer::draw(const Buffer& indices, const Buffer& vertices,
-                         unsigned instance_count) {
+auto CommandBuffer::draw(const Buffer& indices, const Buffer& vertices,
+                         unsigned instance_count) -> void {
   std::unique_lock<std::mutex> lock(this->m_lock);
 
   const auto& vertex_offset = vertices.memory().offset;
@@ -754,7 +626,7 @@ void CommandBuffer::draw(const Buffer& indices, const Buffer& vertices,
   this->m_dirty = true;
 }
 
-void CommandBuffer::dispatch(unsigned x, unsigned y, unsigned z) {
+auto CommandBuffer::dispatch(unsigned x, unsigned y, unsigned z) -> void {
   std::unique_lock<std::mutex> lock(this->m_lock);
 
   auto function = [&](vk::CommandBuffer& cmd, size_t) {
@@ -768,17 +640,11 @@ void CommandBuffer::dispatch(unsigned x, unsigned y, unsigned z) {
   this->m_dirty = true;
 }
 
-bool CommandBuffer::depended() const { return this->m_depended; }
+auto CommandBuffer::depended() const -> bool { return this->m_depended; }
 
-void CommandBuffer::setDepended(bool flag) { this->m_depended = flag; }
+auto CommandBuffer::setDepended(bool flag) -> void { this->m_depended = flag; }
 
-//    void CommandBuffer::transition( Texture& texture, Layout layout )
-//    {
-//      std::unique_lock<std::mutex> lock( this->m_lock ) ;
-//      this->transition( texture, convert( layout ) ) ;
-//    }
-//
-void CommandBuffer::transition(Image& image, vk::ImageLayout layout) {
+auto CommandBuffer::transition(Image& image, vk::ImageLayout layout) -> void {
   vk::ImageSubresourceRange range;
   vk::PipelineStageFlags src;
   vk::PipelineStageFlags dst;
@@ -829,13 +695,13 @@ void CommandBuffer::transition(Image& image, vk::ImageLayout layout) {
   };
 }
 
-void CommandBuffer::synchronize() {
+auto CommandBuffer::synchronize() -> void {
   // Lock this command buffer access.
   std::unique_lock<std::mutex> lock1(this->m_lock);
   this->unsafe_synchronize();
 }
 
-void CommandBuffer::submit() {
+auto CommandBuffer::submit() -> void {
   vk::SubmitInfo info;
 
   if (!this->m_dirty) return;
@@ -884,31 +750,9 @@ void CommandBuffer::submit() {
   this->m_first = false;
 }
 
-//    void CommandBuffer::present( Swapchain& swapchain )
-//    {
-//      vk::PresentInfoKHR info ;
-//
-//      auto queue = this->m_device->graphics().queue ;
-//
-//      auto indices = swapchain.front() ;
-//      auto chain   = swapchain.swapchain() ;
-//      info.setPImageIndices     ( &indices ) ; info.setSwapchainCount    ( 1
-//      ) ; info.setPSwapchains       ( &chain ) ; info.setWaitSemaphoreCount( 1
-//      ) ; info.setPWaitSemaphores   ( &this->m_sync_info[ this->m_previousID()
-//      ].semaphore ) ;
-//
-//      auto result = queue.presentKHR( &info, this->m_device->dispatch() ) ;
-//      if( result != vk::Result::eSuccess ) vk::throwResultException( result,
-//      "" ) ;
-//    }
+auto CommandBuffer::present(Swapchain& swapchain) -> void {}
 
-//    void CommandBuffer::pipelineBarrier( unsigned, size_t )
-//    {
-//      throw LibraryError( "Not yet implemented", LibraryError::Error::Unknown
-//      ) ;
-//    }
-
-void CommandBuffer::wait(CommandBuffer& cmd) {
+auto CommandBuffer::wait(CommandBuffer& cmd) -> void {
   OhmException(
       cmd.m_depended, Error::APIError,
       "Attempting to have multiple dependencies on one Command Buffer.");
