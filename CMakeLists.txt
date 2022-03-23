@@ -1,11 +1,16 @@
 cmake_minimum_required( VERSION 3.8.0 ) 
 
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
-project( Ohm CXX C )
+project( ohm CXX C )
 
 option( Build_Benchmarks "Whether or not to build benchmarks for this project." ON )
 option( Build_Release "Whether or not to build the release version of this project." ON )
 option( Build_Tests "Whether or not to build tests for this project." ON )
+option( Run_Tests "Whether or not running of tests should occur as a part of the build." ON )
+
+if( Run_Tests )
+  enable_testing()
+endif()
 
 # Set build config.
 set( Architecture "64bit" CACHE STRING "The system architecture."                        )
@@ -19,10 +24,9 @@ set( Sanitizer    "None"  CACHE STRING "The sanitizer to use for this project's 
 
 set( PROJECT_VERSION "${Major}.${Minor}.${Branch}.${Revision}" )
 
-
-
-set(CMAKE_CXX_STANDARD          ${CXX_STANDARD} )
+set(CMAKE_CXX_STANDARD          ${CXX_Standard} )
 set(CMAKE_CXX_STANDARD_REQUIRED ON              )
+
 
 if( Build_Release )
   set(CMAKE_BUILD_TYPE Release)
@@ -89,16 +93,18 @@ message("-- Sanitizer: ${Sanitizer}")
 message("-- Compile options: ${CXX_COMPILE_OPTIONS}")
 message("")
 
-include_directories( ohm )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/external/)
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/shaderc/libshaderc/include/)
 
-set( CMAKE_SHARED_LIBRARY_PREFIX "imp_${CMAKE_SHARED_LIBRARY_PREFIX}" )
 
-include         ( Package )
-#add_subdirectory( external ) 
+set( CMAKE_SHARED_LIBRARY_PREFIX "o${CMAKE_SHARED_LIBRARY_PREFIX}" )
+
+include         ( Package  )
+add_subdirectory( external )
 add_subdirectory( ohm      )
 
-#install( EXPORT ohm FILE ohm-config.cmake 
-#                    DESTINATION cmake 
-#                    NAMESPACE   ohm::
-#                    COMPONENT   devel )
+install( EXPORT ohm FILE ohm-config.cmake 
+                    DESTINATION cmake 
+                    NAMESPACE   ohm::
+                    COMPONENT   devel )

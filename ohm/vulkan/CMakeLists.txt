@@ -12,6 +12,7 @@ set(vulkan_srcs
    )
 set(vulkan_libs
      vulkan_impl
+     ${shaderc_libraries}
    )
 
 add_library               (vulkan SHARED  ${vulkan_srcs})

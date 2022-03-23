@@ -25,8 +25,7 @@ inline namespace v1 {
     
     auto result = compiler.PreprocessGlsl(src.begin(), kind, name.begin(), options);
     
-    auto failed = result.GetCompilationStatus() != shaderc_compilation_status_success;
-    OhmException(failed, Error::LogicError, "Failed to preprocess shader.");
+    OhmException(result.GetCompilationStatus() != shaderc_compilation_status_success, Error::LogicError, "Failed to preprocess shader.");
     
     return {result.cbegin(), result.cend()};
   }
@@ -42,8 +41,7 @@ inline namespace v1 {
     
     auto result = compiler.CompileGlslToSpvAssembly(src.begin(), kind, name.begin(), options);
     
-    auto failed = result.GetCompilationStatus() != shaderc_compilation_status_success;
-    OhmException(failed, Error::LogicError, "Failed to preprocess shader.");
+    OhmException(result.GetCompilationStatus() != shaderc_compilation_status_success, Error::LogicError, "Failed to preprocess shader.");
     
     return {result.cbegin(), result.cend()};
   }
@@ -59,8 +57,7 @@ inline namespace v1 {
     
     auto result = compiler.AssembleToSpv(src.begin(), src.size(), options);
     
-    auto failed = result.GetCompilationStatus() != shaderc_compilation_status_success;
-    OhmException(failed, Error::LogicError, "Failed to preprocess shader.");
+    OhmException(result.GetCompilationStatus() != shaderc_compilation_status_success, Error::LogicError, "Failed to preprocess shader.");
     
     return {result.cbegin(), result.cend()};
   }
