@@ -4,7 +4,7 @@ if(Vulkan_FOUND)
 
 add_subdirectory(impl)
 
-set(vullkan_hdrs
+set(vulkan_hdrs
     vulkan_impl.h
    )
 set(vulkan_srcs 
