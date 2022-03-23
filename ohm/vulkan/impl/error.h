@@ -1,6 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
-#include "api/exception.h"
+#include "ohm/api/exception.h"
 namespace ohm {
 namespace ovk {
 

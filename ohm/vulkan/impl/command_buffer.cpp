@@ -10,7 +10,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
-#include "api/exception.h"
+#include "ohm/api/exception.h"
 #include "buffer.h"
 #include "device.h"
 #include "error.h"

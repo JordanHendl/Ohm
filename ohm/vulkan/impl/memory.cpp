@@ -6,7 +6,7 @@
 #include "memory.h"
 #include <algorithm>
 #include <memory>
-#include "api/exception.h"
+#include "ohm/api/exception.h"
 #include "device.h"
 #include "error.h"
 #include "instance.h"

@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 #include <vulkan/vulkan.hpp>
-#include "io/dlloader.h"
-#include "vulkan/vulkan_impl.h"
+#include "ohm/io/dlloader.h"
+#include "ohm/vulkan/vulkan_impl.h"
 
 namespace ohm {
 namespace io {

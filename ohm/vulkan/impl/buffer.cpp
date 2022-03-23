@@ -11,7 +11,7 @@
 #include "memory.h"
 #include "system.h"
 
-#include "api/exception.h"
+#include "ohm/api/exception.h"
 
 #include <memory>
 #include <vulkan/vulkan.hpp>

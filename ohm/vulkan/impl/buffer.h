@@ -1,7 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
-#include "api/array.h"
-#include "api/memory.h"
+#include "ohm/api/array.h"
+#include "ohm/api/memory.h"
 
 namespace ohm {
 namespace ovk {

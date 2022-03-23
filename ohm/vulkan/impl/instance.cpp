@@ -12,9 +12,9 @@
 #include <string>
 #include <vector>
 #include <vulkan/vulkan.hpp>
-#include "api/exception.h"
+#include "ohm/api/exception.h"
 #include "error.h"
-#include "io/dlloader.h"
+#include "ohm/io/dlloader.h"
 
 namespace ohm {
 namespace ovk {

@@ -2,9 +2,9 @@
 #include <array>
 #include <iostream>
 #include <memory>
-#include "api/bits/pool_allocator.h"
-#include "api/ohm.h"
-#include "vulkan/vulkan_impl.h"
+#include "ohm/api/bits/pool_allocator.h"
+#include "ohm/api/ohm.h"
+#include "ohm/vulkan/vulkan_impl.h"
 
 namespace ohm {
 using API = ohm::Vulkan;

@@ -5,13 +5,13 @@
 #define VULKAN_HPP_NO_EXCEPTIONS
 
 #include "vulkan_impl.h"
-#include "api/exception.h"
+#include "ohm/api/exception.h"
 
 #include "impl/memory.h"
 #include "impl/system.h"
 
-#include "api/memory.h"
-#include "api/system.h"
+#include "ohm/api/memory.h"
+#include "ohm/api/system.h"
 
 #ifdef __linux__
 #include <stdlib.h>

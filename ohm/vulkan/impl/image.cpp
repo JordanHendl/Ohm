@@ -349,13 +349,12 @@ auto Image::initialize(Device& device, const ImageInfo& info,
 }
 
 auto Image::bind(Memory& memory) -> void {
-  if (!this->m_image)
-    throw std::runtime_error(
-        "Attempting to bind memory to a Image that has not been initialized.");
-  if (memory.size < this->m_requirements.size)
-    throw std::runtime_error(
-        "Attempting to bind memory to texture without enough memory "
-        "allocated.");
+  OhmException(
+      !this->initialized(), Error::APIError,
+      "Attempting to bind memory to a Image that has not been initialized.");
+  OhmException(memory.size < this->m_requirements.size, Error::APIError,
+               "Attempting to bind memory to texture without enough memory "
+               "allocated.");
 
   this->m_memory = &memory;
   error(this->m_device->device().bindImageMemory(

@@ -1,6 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
-#include "api/image.h"
+#include "ohm/api/image.h"
 #include "command_buffer.h"
 #include "device.h"
 #include "memory.h"

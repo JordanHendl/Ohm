@@ -6,10 +6,10 @@
 
 #include "device.h"
 #include <memory>
-#include "api/exception.h"
+#include "ohm/api/exception.h"
 #include "error.h"
 #include "instance.h"
-#include "io/dlloader.h"
+#include "ohm/io/dlloader.h"
 #include "system.h"
 
 namespace ohm {

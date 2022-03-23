@@ -6,8 +6,8 @@
 #include <string>
 #include <vector>
 #include <vulkan/vulkan.hpp>
-#include "api/memory.h"
-#include "vulkan/vulkan_impl.h"
+#include "ohm/api/memory.h"
+#include "ohm/vulkan/vulkan_impl.h"
 
 namespace ohm {
 namespace io {
