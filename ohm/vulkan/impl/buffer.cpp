@@ -34,7 +34,7 @@ Buffer::Buffer(Device& device, size_t count, size_t size) {
   this->m_count = count;
 
   //@JH TODO Make this configurable. Will work for now, but is not the most
-  //efficient.
+  // efficient.
   this->m_flags |= vk::BufferUsageFlagBits::eStorageBuffer;
   this->m_flags |= vk::BufferUsageFlagBits::eUniformBuffer;
   this->m_flags |= vk::BufferUsageFlagBits::eIndexBuffer;

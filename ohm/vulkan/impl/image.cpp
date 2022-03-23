@@ -297,13 +297,18 @@ auto Image::bind(Memory& memory) -> void {
   this->m_view = this->createView();
   this->m_sampler = this->createSampler();
 
-  //      auto oneshot = CommandBuffer( *this->m_device, SubmitType::Graphics )
-  //      ; oneshot.transition( *this, this->m_start_layout ) ; oneshot.submit()
-  //      ; oneshot.synchronize() ;
+  auto oneshot = CommandBuffer(*this->m_device, QueueType::Graphics);
+  oneshot.transition(*this, this->m_start_layout);
+  oneshot.submit();
+  oneshot.synchronize();
 }
 
 auto Image::setUsage(vk::ImageUsageFlags usage) -> void {
   this->m_usage_flags = usage;
+}
+
+auto Image::setLayout(vk::ImageLayout layout) -> void {
+  this->m_layout = layout;
 }
 }  // namespace ovk
 }  // namespace ohm

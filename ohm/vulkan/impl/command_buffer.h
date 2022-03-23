@@ -18,7 +18,6 @@ class Descriptor;
 class CommandBuffer;
 class Swapchain;
 
-enum class Filter : int;
 using Family = unsigned;
 using PoolMap = std::unordered_map<Family, vk::CommandPool>;
 using MutexMap = std::unordered_map<Family, std::mutex>;
@@ -64,8 +63,8 @@ class CommandBuffer {
   auto setDepended(bool flag) -> void;
   auto fence() const -> const vk::Fence&;
   auto end() -> void;
-  //        auto transition( Image& texture, Layout layout ) -> void ;
-  //        auto transition( Image& texture, vk::ImageLayout layout ) -> void ;
+  //          auto transition( Image& texture, Layout layout ) -> void ;
+  auto transition(Image& texture, vk::ImageLayout layout) -> void;
   //        auto transitionSingle( Image& texture, vk::CommandBuffer cmd,
   //        vk::ImageLayout layout ) -> void ;
   auto synchronize() -> void;

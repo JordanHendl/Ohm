@@ -9,7 +9,7 @@ struct Gpu;
 struct GpuMemoryHeap;
 enum class HeapType : int;
 enum class QueueType : int;
-
+inline namespace v1 {
 struct Vulkan {
   /** System-related function API
    */
@@ -73,4 +73,5 @@ struct Vulkan {
     static auto synchronize(int32_t handle) Ohm_NOEXCEPT -> void;
   };
 };
+}  // namespace v1
 }  // namespace ohm

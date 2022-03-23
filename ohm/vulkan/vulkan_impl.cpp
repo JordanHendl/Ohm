@@ -21,6 +21,7 @@
 #endif
 
 namespace ohm {
+inline namespace v1 {
 auto Vulkan::System::initialize() Ohm_NOEXCEPT -> void {
   auto& loader = ovk::system().loader;
   if (!loader.initialized()) {
@@ -341,4 +342,5 @@ auto Vulkan::Commands::synchronize(int32_t handle) Ohm_NOEXCEPT -> void {
                "Attempting to use object that is not initialized.");
   cmd.synchronize();
 }
+}  // namespace v1
 }  // namespace ohm

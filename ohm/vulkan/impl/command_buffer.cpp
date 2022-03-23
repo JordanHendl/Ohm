@@ -9,6 +9,7 @@
 #include "buffer.h"
 #include "device.h"
 #include "error.h"
+#include "image.h"
 #include "memory.h"
 //#include "Descriptor.h"
 //#include "Pipeline.h"
@@ -415,42 +416,43 @@ void CommandBuffer::copy(const unsigned char* src, Buffer& dst, size_t amt) {
   dst.memory().unmap();
 }
 
-//    void CommandBuffer::copy( Texture& src, Texture& dst, size_t )
-//    {
-//      vk::ImageCopy region ;
-//      vk::Extent3D  extent ;
-//
-//      extent.setWidth ( dst.width()  ) ;
-//      extent.setHeight( dst.height() ) ;
-//      extent.setDepth ( dst.layers() ) ;
-//
-//      region.setExtent        ( extent            ) ;
-//      region.setSrcOffset     ( src.offset()      ) ;
-//      region.setDstOffset     ( dst.offset()      ) ;
-//      region.setSrcSubresource( src.subresource() ) ;
-//      region.setDstSubresource( dst.subresource() ) ;
-//
-//      std::unique_lock<std::mutex> lock( this->m_lock ) ;
-//      this->m_record() ;
-//
-//      auto function = [&]( vk::CommandBuffer& cmd, size_t )
-//      {
-//        cmd.copyImage( src.image(), src.layout(), dst.image(), dst.layout(),
-//        1, &region, this->m_device->dispatch() ) ;
-//      };
-//
-//      auto src_old_layout = src.layout() ;
-//      auto dst_old_layout = dst.layout() ;
-//
-//      this->transition( src, vk::ImageLayout::eGeneral ) ;
-//      this->transition( dst, vk::ImageLayout::eGeneral ) ;
-//      this->m_append( function ) ;
-//      if( src_old_layout != vk::ImageLayout::eUndefined ) this->transition(
-//      src, src_old_layout ) ; if( dst_old_layout !=
-//      vk::ImageLayout::eUndefined ) this->transition( dst, dst_old_layout ) ;
-//
-//      this->m_dirty = true ;
-//    }
+void CommandBuffer::copy(Image& src, Image& dst, size_t) {
+  vk::ImageCopy region;
+  vk::Extent3D extent;
+
+  extent.setWidth(dst.width());
+  extent.setHeight(dst.height());
+  extent.setDepth(dst.layers());
+
+  region.setExtent(extent);
+  region.setSrcOffset(src.offset());
+  region.setDstOffset(dst.offset());
+  region.setSrcSubresource(src.subresource());
+  region.setDstSubresource(dst.subresource());
+
+  std::unique_lock<std::mutex> lock(this->m_lock);
+  OhmException(!this->m_recording, Error::APIError,
+               "Attempting to record to a command buffer without starting a "
+               "record operation.");
+
+  auto function = [&](vk::CommandBuffer& cmd, size_t) {
+    cmd.copyImage(src.image(), src.layout(), dst.image(), dst.layout(), 1,
+                  &region, this->m_device->dispatch());
+  };
+
+  auto src_old_layout = src.layout();
+  auto dst_old_layout = dst.layout();
+
+  this->transition(src, vk::ImageLayout::eGeneral);
+  this->transition(dst, vk::ImageLayout::eGeneral);
+  this->append(function);
+  if (src_old_layout != vk::ImageLayout::eUndefined)
+    this->transition(src, src_old_layout);
+  if (dst_old_layout != vk::ImageLayout::eUndefined)
+    this->transition(dst, dst_old_layout);
+
+  this->m_dirty = true;
+}
 
 void CommandBuffer::clearDependancies() { this->m_dependancies.clear(); }
 
@@ -459,67 +461,76 @@ void CommandBuffer::addDependancy(vk::Semaphore semaphore) {
 }
 
 auto CommandBuffer::bind(Descriptor& desc) -> void {
-  //      auto& pipeline = desc.pipeline();
-  //      const auto bind_point = pipeline.graphics() ?
-  //      vk::PipelineBindPoint::eGraphics : vk::PipelineBindPoint::eCompute ;
-  //      auto function = [&]( vk::CommandBuffer& cmd, size_t )
-  //      {
-  //        cmd.bindPipeline( bind_point, pipeline.pipeline(),
-  //        this->m_device->dispatch()) ; if( desc.set() )
-  //        cmd.bindDescriptorSets( bind_point, pipeline.layout(), 0, 1,
-  //        &desc.set(), 0, nullptr, this->m_device->dispatch() ) ;
-  //      };
+  //        auto& pipeline = desc.pipeline();
+  //        const auto bind_point = pipeline.graphics() ?
+  //        vk::PipelineBindPoint::eGraphics : vk::PipelineBindPoint::eCompute ;
+  //        auto function = [&]( vk::CommandBuffer& cmd, size_t )
+  //        {
+  //          cmd.bindPipeline( bind_point, pipeline.pipeline(),
+  //          this->m_device->dispatch()) ; if( desc.set() )
+  //          cmd.bindDescriptorSets( bind_point, pipeline.layout(), 0, 1,
+  //          &desc.set(), 0, nullptr, this->m_device->dispatch() ) ;
+  //        };
   //
-  //      std::unique_lock<std::mutex> lock( this->m_lock ) ;
-  //      this->m_record( true ) ;
-  //      this->m_append( function ) ;
-  //      this->m_dirty = true ;
+  //        std::unique_lock<std::mutex> lock( this->m_lock ) ;
+  //        this->m_record( true ) ;
+  //        this->m_append( function ) ;
+  //        this->m_dirty = true ;
 }
 
-//    void CommandBuffer::blit( Texture& src, Texture& dst, Filter imp_filter )
-//    {
-//      vk::ImageBlit blit   ;
-//      vk::Filter    filter ;
-//
-//      switch( imp_filter )
-//      {
-//        case Filter::Cubic   : filter = vk::Filter::eCubicIMG ; break ;
-//        case Filter::Linear  : filter = vk::Filter::eLinear   ; break ;
-//        case Filter::Nearest : filter = vk::Filter::eNearest  ; break ;
-//        default : filter = vk::Filter::eLinear ; break ;
-//      };
-//
-//      std::array<vk::Offset3D, 2> src_offsets = { vk::Offset3D( 0, 0, 0 ),
-//      vk::Offset3D( src.width(), src.height(), 1 ) }; std::array<vk::Offset3D,
-//      2> dst_offsets = { vk::Offset3D( 0, 0, 0 ), vk::Offset3D( dst.width(),
-//      dst.height(), 1 ) };
-//
-//      blit.setSrcSubresource( src.subresource() ) ;
-//      blit.setDstSubresource( dst.subresource() ) ;
-//      blit.setSrcOffsets    ( src_offsets       ) ;
-//      blit.setDstOffsets    ( dst_offsets       ) ;
-//      auto src_old_layout = src.layout() ;
-//      auto dst_old_layout = dst.layout() ;
-//
-//      auto function = [&]( vk::CommandBuffer& cmd, size_t )
-//      {
-//        cmd.blitImage( src.image(), src.layout(), dst.image(), dst.layout(),
-//        1, &blit, filter, this->m_device->dispatch() ) ;
-//      };
-//
-//      std::unique_lock<std::mutex> lock( this->m_lock ) ;
-//      this->m_record() ;
-//
-//      this->transition( src, vk::ImageLayout::eGeneral ) ;
-//      this->transition( dst, vk::ImageLayout::eGeneral ) ;
-//
-//      this->m_append( function ) ;
-//
-//      if( src_old_layout != vk::ImageLayout::eUndefined ) this->transition(
-//      src, src_old_layout ) ; if( dst_old_layout !=
-//      vk::ImageLayout::eUndefined ) this->transition( dst, dst_old_layout ) ;
-//      this->m_dirty = true ;
-//    }
+void CommandBuffer::blit(Image& src, Image& dst, Filter in_filter) {
+  vk::ImageBlit blit;
+  vk::Filter filter;
+
+  switch (in_filter) {
+    case Filter::Cubic:
+      filter = vk::Filter::eCubicIMG;
+      break;
+    case Filter::Linear:
+      filter = vk::Filter::eLinear;
+      break;
+    case Filter::Nearest:
+      filter = vk::Filter::eNearest;
+      break;
+    default:
+      filter = vk::Filter::eLinear;
+      break;
+  };
+
+  std::array<vk::Offset3D, 2> src_offsets = {
+      vk::Offset3D(0, 0, 0), vk::Offset3D(src.width(), src.height(), 1)};
+  std::array<vk::Offset3D, 2> dst_offsets = {
+      vk::Offset3D(0, 0, 0), vk::Offset3D(dst.width(), dst.height(), 1)};
+
+  blit.setSrcSubresource(src.subresource());
+  blit.setDstSubresource(dst.subresource());
+  blit.setSrcOffsets(src_offsets);
+  blit.setDstOffsets(dst_offsets);
+  auto src_old_layout = src.layout();
+  auto dst_old_layout = dst.layout();
+
+  auto function = [&](vk::CommandBuffer& cmd, size_t) {
+    cmd.blitImage(src.image(), src.layout(), dst.image(), dst.layout(), 1,
+                  &blit, filter, this->m_device->dispatch());
+  };
+
+  std::unique_lock<std::mutex> lock(this->m_lock);
+  OhmException(!this->m_recording, Error::APIError,
+               "Attempting to record to a command buffer without starting a "
+               "record operation.");
+
+  this->transition(src, vk::ImageLayout::eGeneral);
+  this->transition(dst, vk::ImageLayout::eGeneral);
+
+  this->append(function);
+
+  if (src_old_layout != vk::ImageLayout::eUndefined)
+    this->transition(src, src_old_layout);
+  if (dst_old_layout != vk::ImageLayout::eUndefined)
+    this->transition(dst, dst_old_layout);
+
+  this->m_dirty = true;
+}
 
 //    auto CommandBuffer::blit( RenderPass& src, RenderPass& dst, Filter
 //    imp_filter, unsigned, unsigned framebuffer ) -> void
@@ -767,90 +778,56 @@ void CommandBuffer::setDepended(bool flag) { this->m_depended = flag; }
 //      this->transition( texture, convert( layout ) ) ;
 //    }
 //
-//    void CommandBuffer::transition( Texture& texture, vk::ImageLayout layout )
-//    {
-//      vk::ImageSubresourceRange range      ;
-//      vk::PipelineStageFlags    src        ;
-//      vk::PipelineStageFlags    dst        ;
-//      vk::DependencyFlags       dep_flags  ;
-//      vk::ImageLayout           new_layout ;
-//      vk::ImageLayout           old_layout ;
-//
-//      new_layout = layout           ;
-//      old_layout = texture.layout() ;
-//
-//      range.setBaseArrayLayer( 0                               ) ;
-//      range.setBaseMipLevel  ( 0                               ) ;
-//      range.setLevelCount    ( 1                               ) ;
-//      range.setLayerCount    ( texture.layers()                ) ;
-//      if( texture.format() == vk::Format::eD24UnormS8Uint )
-//        range.setAspectMask( vk::ImageAspectFlagBits::eDepth |
-//        vk::ImageAspectFlagBits::eStencil ) ;
-//      else
-//        range.setAspectMask( vk::ImageAspectFlagBits::eColor ) ;
-//
-//      texture.barrier().setOldLayout          ( old_layout              ) ;
-//      texture.barrier().setNewLayout          ( new_layout              ) ;
-//      texture.barrier().setImage              ( texture.image()         ) ;
-//      texture.barrier().setSubresourceRange   ( range                   ) ;
-//      texture.barrier().setSrcQueueFamilyIndex( VK_QUEUE_FAMILY_IGNORED ) ;
-//      texture.barrier().setDstQueueFamilyIndex( VK_QUEUE_FAMILY_IGNORED ) ;
-//
-//      dep_flags = vk::DependencyFlags()                    ;
-//      src       = vk::PipelineStageFlagBits::eTopOfPipe    ;
-//      dst       = vk::PipelineStageFlagBits::eBottomOfPipe ;
-//
-//      this->m_record() ;
-//      if( new_layout != vk::ImageLayout::eUndefined )
-//      {
-//        this->m_current().pipelineBarrier( src, dst, dep_flags, 0, nullptr, 0,
-//        nullptr, 1, &texture.barrier(), this->m_device->dispatch() ) ;
-//        texture.setLayout( new_layout ) ;
-//        this->m_dirty = true ;
-//      }
-//    }
-//
-//    auto CommandBuffer::transitionSingle( Texture& texture, vk::CommandBuffer
-//    cmd, vk::ImageLayout layout ) -> void
-//    {
-//      vk::ImageSubresourceRange range      ;
-//      vk::PipelineStageFlags    src        ;
-//      vk::PipelineStageFlags    dst        ;
-//      vk::DependencyFlags       dep_flags  ;
-//      vk::ImageLayout           new_layout ;
-//      vk::ImageLayout           old_layout ;
-//
-//      new_layout = layout           ;
-//      old_layout = texture.layout() ;
-//
-//      range.setBaseArrayLayer( 0                               ) ;
-//      range.setBaseMipLevel  ( 0                               ) ;
-//      range.setLevelCount    ( 1                               ) ;
-//      range.setLayerCount    ( texture.layers()                ) ;
-//      if( texture.format() == vk::Format::eD24UnormS8Uint )
-//        range.setAspectMask( vk::ImageAspectFlagBits::eDepth |
-//        vk::ImageAspectFlagBits::eStencil ) ;
-//      else
-//        range.setAspectMask( vk::ImageAspectFlagBits::eColor ) ;
-//
-//      texture.barrier().setOldLayout          ( old_layout              ) ;
-//      texture.barrier().setNewLayout          ( new_layout              ) ;
-//      texture.barrier().setImage              ( texture.image()         ) ;
-//      texture.barrier().setSubresourceRange   ( range                   ) ;
-//      texture.barrier().setSrcQueueFamilyIndex( VK_QUEUE_FAMILY_IGNORED ) ;
-//      texture.barrier().setDstQueueFamilyIndex( VK_QUEUE_FAMILY_IGNORED ) ;
-//
-//      dep_flags = vk::DependencyFlags()                    ;
-//      src       = vk::PipelineStageFlagBits::eTopOfPipe    ;
-//      dst       = vk::PipelineStageFlagBits::eBottomOfPipe ;
-//
-//      if( new_layout != vk::ImageLayout::eUndefined )
-//      {
-//        cmd.pipelineBarrier( src, dst, dep_flags, 0, nullptr, 0, nullptr, 1,
-//        &texture.barrier(), this->m_device->dispatch() ) ; texture.setLayout(
-//        new_layout ) ; this->m_dirty = true ;
-//      }
-//    }
+void CommandBuffer::transition(Image& image, vk::ImageLayout layout) {
+  vk::ImageSubresourceRange range;
+  vk::PipelineStageFlags src;
+  vk::PipelineStageFlags dst;
+  vk::DependencyFlags dep_flags;
+  vk::ImageLayout new_layout;
+  vk::ImageLayout old_layout;
+
+  new_layout = layout;
+  old_layout = image.layout();
+
+  range.setBaseArrayLayer(0);
+  range.setBaseMipLevel(0);
+  range.setLevelCount(1);
+  range.setLayerCount(image.layers());
+  if (image.format() == vk::Format::eD24UnormS8Uint)
+    range.setAspectMask(vk::ImageAspectFlagBits::eDepth |
+                        vk::ImageAspectFlagBits::eStencil);
+  else
+    range.setAspectMask(vk::ImageAspectFlagBits::eColor);
+
+  image.barrier().setOldLayout(old_layout);
+  image.barrier().setNewLayout(new_layout);
+  image.barrier().setImage(image.image());
+  image.barrier().setSubresourceRange(range);
+
+  //@JH TODO this is not ok and needs to be addressed. memory can get
+  // invalidated doing this.
+  image.barrier().setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
+  image.barrier().setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
+
+  dep_flags = vk::DependencyFlags();
+  src = vk::PipelineStageFlagBits::eTopOfPipe;
+  dst = vk::PipelineStageFlagBits::eBottomOfPipe;
+
+  OhmException(!this->m_recording, Error::APIError,
+               "Attempting to record to a command buffer without starting a "
+               "record operation.");
+
+  if (new_layout != vk::ImageLayout::eUndefined) {
+    auto function = [&](vk::CommandBuffer& cmd, size_t) {
+      cmd.pipelineBarrier(src, dst, dep_flags, 0, nullptr, 0, nullptr, 1,
+                          &image.barrier(), this->m_device->dispatch());
+    };
+
+    this->append(function);
+    this->m_dirty = true;
+    image.setLayout(new_layout);
+  };
+}
 
 void CommandBuffer::synchronize() {
   // Lock this command buffer access.

@@ -12,48 +12,15 @@ auto convert(vk::Format format) -> ImageFormat;
 
 class Image {
  public:
-  /** Constructor
-   */
   Image() = default;
-
-  /** Copy constructor. Does not do a deep copy, performs a surface-level copy
-   * only. ( Copies pointers to GPU data, does not allocate and copy ).
-   * @param orig The image to grab the image data from.
-   */
   Image(const Image& orig);
-
-  /** Copy constructor. Does not do a deep copy, performs a surface-level copy
-   * only. ( Copies pointers to GPU data, does not allocate and copy ).
-   * @param orig The image to grab the image data from.
-   */
   Image(const Image& orig, unsigned layer);
-
   Image(Image&& mv);
-
-  /** Default deconstructor.
-   */
   ~Image();
-
-  /** Equals operator. Does not do a deep copy,  performs a surface-level copy
-   * only. ( Copies pointers to GPU data, does not allocate and copy ).
-   * @param src The image to grab image data from.
-   * @return A reference to this image after the copy.
-   */
   auto operator=(Image&& mv) -> Image&;
-
   auto operator=(const Image& cpy) -> Image&;
-
-  /** Method to determine if this object was initialized or not.
-   * @return Whether or not this object was initialized.
-   */
-
-  /** Method to initialize this object with the input parameters.
-   */
   auto initialize(Device& gpu, const ImageInfo& info,
                   vk::ImageLayout start = vk::ImageLayout::eGeneral) -> size_t;
-
-  /** Method to initialize this object with the input parameters.
-   */
   auto initialize(Device& gpu, const ImageInfo& info, vk::Image prealloc,
                   vk::ImageLayout start = vk::ImageLayout::eGeneral) -> size_t;
 
@@ -65,9 +32,7 @@ class Image {
   inline auto layout() const { return this->m_layout; }
   inline auto format() const { return convert(this->m_info.format); }
   inline auto ohm_format() const { return this->m_info.format; }
-  inline auto offset() const {
-    return this->m_memory != nullptr ? this->m_memory->offset : 0;
-  }
+  inline auto offset() const { return this->m_memory->offset; }
   inline auto view() const { return this->m_view; }
   inline auto sampler() const { return this->m_sampler; }
   inline auto image() const { return this->m_image; }
@@ -88,7 +53,7 @@ class Image {
    * this, barriers are stored in each object, to guarantee lifetime.
    * @return The barrier used for all barrier operation on this object.
    */
-  inline auto barrier() { return this->m_barrier; }
+  inline auto barrier() -> vk::ImageMemoryBarrier& { return this->m_barrier; }
 
  private:
   Device* m_device;
@@ -113,19 +78,8 @@ class Image {
   unsigned m_layer;
   bool m_should_delete;
 
-  /** Helper method to create a vulkan image view.
-   * @return A Valid vulkan image view.
-   */
   inline auto createView() -> vk::ImageView;
-
-  /** Method to create a vulkan sampler.
-   * @return A Valid vulkan sampler.
-   */
   inline auto createSampler() -> vk::Sampler;
-
-  /** Method to create a vulkan image.
-   * @return A Made vulkan image.
-   */
   inline auto createImage() -> vk::Image;
 };
 }  // namespace ovk

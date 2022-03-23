@@ -14,7 +14,12 @@ enum class QueueType : int {
   Transfer,
 };
 
-enum class Filter : int;
+enum class Filter : int {
+  Linear,
+  Nearest,
+  Cubic,
+};
+
 template <typename API, QueueType Queue = QueueType::Graphics>
 class Commands {
  public:
