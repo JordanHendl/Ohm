@@ -1,5 +1,5 @@
-#include "ohm/io/dlloader.h"
 #include <benchmark/benchmark.h>
+#include "ohm/io/dlloader.h"
 
 auto bench_dll_load(benchmark::State& state) {
   while (state.KeepRunning()) {

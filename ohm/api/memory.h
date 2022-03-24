@@ -1,43 +1,7 @@
 #pragma once
 #include <vector>
-
+#include "allocators.h"
 namespace ohm {
-enum class HeapType : int {
-  GpuOnly = 1 << 1,
-  HostVisible = 1 << 2,
-  LazyAllocation = 1 << 3,
-};
-
-struct GpuMemoryHeap {
-  HeapType type = HeapType::GpuOnly;
-  size_t size = 0;
-};
-
-/** Default memory heap selector.
- */
-template <typename API>
-struct DefaultAllocator {
-  /** Function to choose which memory heap the allocation should pull from.
-   * Default implementation is very naiive, but can be overloaded to be better
-   * if desired.
-   */
-  inline static auto chooseHeap(int gpu, const std::vector<GpuMemoryHeap>& heap,
-                                HeapType requested, size_t size) -> int;
-
-  /** Function to actually allocate memory. Can be overloaded to do memory
-   * pooling using offsets, but default is just to actually request memory from
-   * the GPU on every allocation.
-   */
-  inline static auto allocate(int gpu, HeapType type, int heap_index,
-                              size_t size) -> int32_t;
-
-  /** Function to handle deleting memory. Default behaviour is to just release
-   * it back to the GPU, however can be overloaded when implementing custom
-   * allocators.
-   */
-  inline static auto destroy(int32_t handle) -> void;
-};
-
 template <typename API, typename Allocator = DefaultAllocator<API>>
 class Memory {
  public:
@@ -59,18 +23,6 @@ class Memory {
   int m_gpu;
   int32_t m_handle;
 };
-
-inline auto operator|(const HeapType& a, const HeapType& b) -> HeapType {
-  return static_cast<HeapType>(static_cast<int>(a) | static_cast<int>(b));
-}
-
-inline auto operator|=(const HeapType& a, const HeapType& b) -> HeapType {
-  return static_cast<HeapType>(static_cast<int>(a) | static_cast<int>(b));
-}
-
-inline auto operator&(const HeapType& a, const HeapType& b) -> bool {
-  return static_cast<HeapType>(static_cast<int>(a) & static_cast<int>(b)) == b;
-}
 
 template <typename API, typename Allocator>
 Memory<API, Allocator>::Memory() {
@@ -143,34 +95,6 @@ auto Memory<API, Allocator>::gpu() const -> int {
 template <typename API, typename Allocator>
 auto Memory<API, Allocator>::handle() const -> int32_t {
   return this->m_handle;
-}
-
-template <typename API>
-auto DefaultAllocator<API>::chooseHeap(int gpu,
-                                       const std::vector<GpuMemoryHeap>& heap,
-                                       HeapType requested, size_t size) -> int {
-  auto index = 0;
-  for (auto& heap : heap) {
-    auto type_match = heap.type & requested;
-    auto size_ok = size <= heap.size;
-    if (type_match && size_ok) {
-      return index;
-    }
-    index++;
-  }
-
-  return 0;
-}
-
-template <typename API>
-auto DefaultAllocator<API>::allocate(int gpu, HeapType type, int heap_index,
-                                     size_t size) -> int32_t {
-  return API::Memory::allocate(gpu, type, heap_index, size);
-}
-
-template <typename API>
-auto DefaultAllocator<API>::destroy(int32_t handle) -> void {
-  if (handle >= 0) API::Memory::destroy(handle);
 }
 }  // namespace ohm
 

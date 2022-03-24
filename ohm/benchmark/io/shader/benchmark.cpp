@@ -1,5 +1,5 @@
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <ostream>
 #include "ohm/io/shader.h"
 
@@ -40,9 +40,7 @@ const char* test_compute_shader = {
 std::vector<std::pair<std::string, std::string>> shaders = {
     {std::string("test.comp"), std::string(test_compute_shader)}};
 
-std::vector<std::string> shader_files = {
-  "test_shader.comp.glsl"
-};
+std::vector<std::string> shader_files = {"test_shader.comp.glsl"};
 auto bench_shader_creation(benchmark::State& state) {
   while (state.KeepRunning()) {
     auto shader = ohm::io::Shader(shaders);
@@ -61,11 +59,11 @@ BENCHMARK(bench_shader_creation);
 
 int main(int argc, char** argv) {
   std::ofstream stream("test_shader.comp.glsl");
-  if(stream) {
+  if (stream) {
     stream.write(test_compute_shader, sizeof(test_compute_shader));
     stream.close();
   }
-  
+
   benchmark::Initialize(&argc, argv);
   if (benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;
   benchmark::RunSpecifiedBenchmarks();

@@ -56,36 +56,36 @@ auto test_compilation_from_src() -> bool {
 auto test_variable_recognition() -> bool {
   auto shader = io::Shader(shaders);
   auto& stage = shader.stages()[0];
-  
+
   auto present_map = std::map<std::string, bool>();
   present_map["input_tex"] = false;
   present_map["output_tex"] = false;
   present_map["config"] = false;
-  
-  for(auto& variable : stage.variables) {
+
+  for (auto& variable : stage.variables) {
     present_map[variable.first] = true;
   }
-  
-  for(auto& present : present_map) {
-    if(!present.second) return false;
+
+  for (auto& present : present_map) {
+    if (!present.second) return false;
   }
-  
+
   return true;
 }
 
 auto test_variable_validation() -> bool {
   auto shader = io::Shader(shaders);
   auto& stage = shader.stages()[0];
-  
+
   auto present_map = std::map<std::string, VariableType>();
   present_map["input_tex"] = VariableType::Image;
   present_map["output_tex"] = VariableType::Image;
   present_map["config"] = VariableType::Storage;
-  
-  for(auto& variable : stage.variables) {
-    if(present_map[variable.first] != variable.second.type) return false;
+
+  for (auto& variable : stage.variables) {
+    if (present_map[variable.first] != variable.second.type) return false;
   }
-  
+
   return true;
 }
 }  // namespace io

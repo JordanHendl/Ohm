@@ -1,12 +1,51 @@
 #pragma once
 #include <mutex>
 #include <vector>
-#include "../exception.h"
-#include "../memory.h"
+#include "ohm/api/exception.h"
 
 namespace ohm {
+enum class HeapType : int {
+  GpuOnly = 1 << 1,
+  HostVisible = 1 << 2,
+  LazyAllocation = 1 << 3,
+};
+
+struct GpuMemoryHeap {
+  HeapType type = HeapType::GpuOnly;
+  size_t size = 0;
+};
+
+/** Default memory heap selector.
+ * Allocator requests new memory from the API every memory request.
+ * Very slow, but is what you get.
+ */
+template <typename API>
+struct DefaultAllocator {
+  /** Function to choose which memory heap the allocation should pull from.
+   * Default implementation is very naiive, but can be overloaded to be better
+   * if desired.
+   */
+  inline static auto chooseHeap(int gpu, const std::vector<GpuMemoryHeap>& heap,
+                                HeapType requested, size_t size) -> int;
+
+  /** Function to actually allocate memory. Can be overloaded to do memory
+   * pooling using offsets, but default is just to actually request memory from
+   * the GPU on every allocation.
+   */
+  inline static auto allocate(int gpu, HeapType type, int heap_index,
+                              size_t size) -> int32_t;
+
+  /** Function to handle deleting memory. Default behaviour is to just release
+   * it back to the GPU, however can be overloaded when implementing custom
+   * allocators.
+   */
+  inline static auto destroy(int32_t handle) -> void;
+};
 
 /** Pool memory allocator.
+ * Allocates a configurable amount of memory from each API memory heap, then
+ * (using the offset interface of ohm::Memory) hands out 'memory' in form from
+ * that preallocated memory.
  */
 template <typename API>
 struct PoolAllocator {
@@ -17,6 +56,10 @@ struct PoolAllocator {
                               size_t size) -> int32_t;
 
   inline static auto destroy(int32_t handle) -> void;
+
+  inline static auto setAllocationSize(size_t byte_amt) -> void {
+    PoolAllocator<API>::data.requested_memory = byte_amt;
+  }
 
  private:
   struct Block {
@@ -42,6 +85,46 @@ struct PoolAllocator {
 
 template <typename API>
 typename PoolAllocator<API>::PoolAllocatorData PoolAllocator<API>::data;
+
+inline auto operator|(const HeapType& a, const HeapType& b) -> HeapType {
+  return static_cast<HeapType>(static_cast<int>(a) | static_cast<int>(b));
+}
+
+inline auto operator|=(const HeapType& a, const HeapType& b) -> HeapType {
+  return static_cast<HeapType>(static_cast<int>(a) | static_cast<int>(b));
+}
+
+inline auto operator&(const HeapType& a, const HeapType& b) -> bool {
+  return static_cast<HeapType>(static_cast<int>(a) & static_cast<int>(b)) == b;
+}
+
+template <typename API>
+auto DefaultAllocator<API>::chooseHeap(int gpu,
+                                       const std::vector<GpuMemoryHeap>& heap,
+                                       HeapType requested, size_t size) -> int {
+  auto index = 0;
+  for (auto& heap : heap) {
+    auto type_match = heap.type & requested;
+    auto size_ok = size <= heap.size;
+    if (type_match && size_ok) {
+      return index;
+    }
+    index++;
+  }
+
+  return 0;
+}
+
+template <typename API>
+auto DefaultAllocator<API>::allocate(int gpu, HeapType type, int heap_index,
+                                     size_t size) -> int32_t {
+  return API::Memory::allocate(gpu, type, heap_index, size);
+}
+
+template <typename API>
+auto DefaultAllocator<API>::destroy(int32_t handle) -> void {
+  if (handle >= 0) API::Memory::destroy(handle);
+}
 
 template <typename API>
 auto PoolAllocator<API>::chooseHeap(int gpu,
@@ -74,7 +157,9 @@ auto PoolAllocator<API>::chooseHeap(int gpu,
     }
     index++;
   }
-
+  //@JH TODO This needs to be handled as its a very real scenario. Release
+  //builds currently do 0 to counteract this. We're saved by the exception in
+  // debug.
   OhmException(true, Error::LogicError,
                "Could not find a valid memory heap to allocate from.");
   return -1;

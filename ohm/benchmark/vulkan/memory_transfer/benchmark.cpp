@@ -2,7 +2,6 @@
 #include <array>
 #include <iostream>
 #include <memory>
-#include "ohm/api/bits/pool_allocator.h"
 #include "ohm/api/ohm.h"
 #include "ohm/vulkan/vulkan_impl.h"
 

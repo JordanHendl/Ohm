@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "ohm/api/image.h"
 
 namespace ohm {
 namespace io {
@@ -19,11 +20,32 @@ class Shader {
     Fragment,
     Geometry,
     TesselationControl,
-    TesselationEvaluation,
+    TesselationEval,
     Compute,
   };
 
   struct Stage {
+    struct Attribute {
+      enum class Type : int {
+        Undefined,
+        eInt,
+        eFloat,
+        eVec2,
+        eIVec2,
+        eVec3,
+        eIVec3,
+        eVec4,
+        eIVec4,
+        eMat2,
+        eMat3,
+        eMat4,
+      };
+
+      std::string name;
+      Type type;
+      size_t location;
+    };
+
     struct Variable {
       enum class Type : int {
         None,
@@ -49,8 +71,8 @@ class Shader {
     std::string name;
     std::map<std::string, Variable> variables;
     std::vector<uint32_t> spirv;
-    std::vector<std::string> in_attributes;
-    std::vector<std::string> out_attributes;
+    std::vector<Attribute> in_attributes;
+    std::vector<Attribute> out_attributes;
   };
 
   explicit Shader();
