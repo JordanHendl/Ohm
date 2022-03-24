@@ -27,13 +27,21 @@ class Shader {
     struct Variable {
       enum class Type : int {
         None,
-        Image,
         Sampler,
-        ConstVariable,
+        Sampled,
+        Image,
+        UTexel,
+        STexel,
+        Uniform,
         Storage,
+        UniformDynamic,
+        StorateDynamic,
+        Input,
+        Acceleration,
       };
+
+      size_t set;
       size_t binding;
-      std::string name;
       Type type;
     };
 

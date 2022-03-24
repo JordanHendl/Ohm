@@ -9,6 +9,7 @@ set( io_headers
    )
 
 set( io_includes
+      ${spirv-reflect_include_dirs}
       ${shaderc_include_dirs}
    )
 

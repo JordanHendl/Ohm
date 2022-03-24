@@ -3,4 +3,5 @@ execute_process(
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+set(spirv-reflect_include_dirs ${CMAKE_CURRENT_BINARY_DIR}/spirv-reflect/ CACHE INTERNAL "spirv-reflect external include path.")
 add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/spirv-reflect ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
