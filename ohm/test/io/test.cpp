@@ -19,10 +19,10 @@ const char* test_compute_shader = {
     "image2D input_tex ;\n"
     "layout( binding = 1, rgba32f ) coherent restrict writeonly uniform "
     "image2D output_tex;\n"
-    "layout( binding = 3 ) buffer config\n"
+    "layout( binding = 3 ) buffer Configuration\n"
     "{\n"
     "  float threshold;\n"
-    "};\n"
+    "} config;\n"
     "void main()\n"
     "{\n"
     "  const ivec2 tex_coords = ivec2( gl_GlobalInvocationID.x, "
@@ -31,7 +31,7 @@ const char* test_compute_shader = {
     "                    ) ;\n"
     "  const float intensity  = ( 0.2126 * color.r + 0.7152 * color.g + 0.0722 "
     "* color.b ) * color.a ;\n"
-    "  const float out_value  = intensity > threshold ? 1.0 : 0.0              "
+    "  const float out_value  = intensity > config.threshold ? 1.0 : 0.0       "
     "                      ;\n"
     "  \n"
     "  vec4 out_vec = vec4( vec3( out_value ), 1.0 ) ;\n"
@@ -45,12 +45,48 @@ namespace ohm {
 namespace io {
 auto test_initialization() -> bool {
   auto shader = io::Shader();
-  return true;
+  return shader.stages().size() >= 0;
 }
 
 auto test_compilation_from_src() -> bool {
   auto shader = io::Shader(shaders);
-  return shader.stages().size() != 0;
+  return shader.stages().size() == 1;
+}
+
+auto test_variable_recognition() -> bool {
+  auto shader = io::Shader(shaders);
+  auto& stage = shader.stages()[0];
+  
+  auto present_map = std::map<std::string, bool>();
+  present_map["input_tex"] = false;
+  present_map["output_tex"] = false;
+  present_map["config"] = false;
+  
+  for(auto& variable : stage.variables) {
+    present_map[variable.first] = true;
+  }
+  
+  for(auto& present : present_map) {
+    if(!present.second) return false;
+  }
+  
+  return true;
+}
+
+auto test_variable_validation() -> bool {
+  auto shader = io::Shader(shaders);
+  auto& stage = shader.stages()[0];
+  
+  auto present_map = std::map<std::string, VariableType>();
+  present_map["input_tex"] = VariableType::Image;
+  present_map["output_tex"] = VariableType::Image;
+  present_map["config"] = VariableType::Storage;
+  
+  for(auto& variable : stage.variables) {
+    if(present_map[variable.first] != variable.second.type) return false;
+  }
+  
+  return true;
 }
 }  // namespace io
 }  // namespace ohm
@@ -58,6 +94,8 @@ auto test_compilation_from_src() -> bool {
 TEST(IO, Shader) {
   EXPECT_TRUE(ohm::io::test_initialization());
   EXPECT_TRUE(ohm::io::test_compilation_from_src());
+  EXPECT_TRUE(ohm::io::test_variable_recognition());
+  EXPECT_TRUE(ohm::io::test_variable_validation());
 }
 
 auto main(int argc, char* argv[]) -> int {

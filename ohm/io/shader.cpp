@@ -9,6 +9,10 @@
 namespace ohm {
 namespace io {
 inline namespace v1 {
+constexpr auto target_spirv_version = shaderc_spirv_version_1_3;
+constexpr auto target_environment = shaderc_target_env_vulkan;
+constexpr auto target_env_version = shaderc_env_version_vulkan_1_2;
+
 inline auto type_from_name(const std::string& type) -> Shader::Type {
   auto has = [](std::string_view a, std::string_view b) {
     return a.find(b) != std::string::npos;
@@ -84,8 +88,8 @@ auto Shader::ShaderData::reflect(Shader::Stage& stage) -> void {
   
   auto module = SpvReflectShaderModule{};
   auto& spv = stage.spirv;
-  auto result = spvReflectCreateShaderModule(spv.size(), spv.data(), &module);
-  OhmException( result == success, Error::LogicError, "Failed to parse SPV.");
+  auto result = spvReflectCreateShaderModule(spv.size() * sizeof(uint32_t), spv.data(), &module);
+  OhmException( result != success, Error::LogicError, "Failed to parse SPV.");
   
   this->reflect_variables(stage, module);
 }
@@ -94,11 +98,11 @@ auto Shader::ShaderData::reflect_variables(Shader::Stage& stage, SpvReflectShade
   constexpr auto success = SPV_REFLECT_RESULT_SUCCESS;
   auto count = 0u;
   auto result = spvReflectEnumerateDescriptorSets(&module, &count, nullptr);
-  OhmException( result == success, Error::LogicError, "Failed to enumerate SPV");
+  OhmException( result != success, Error::LogicError, "Failed to enumerate SPV");
   
-  auto sets = std::vector<SpvReflectDescriptorSet*>();
+  auto sets = std::vector<SpvReflectDescriptorSet*>(count);
   result = spvReflectEnumerateDescriptorSets(&module, &count, sets.data());
-  OhmException( result == success, Error::LogicError, "Failed to enumerate SPV");
+  OhmException( result != success, Error::LogicError, "Failed to enumerate SPV");
   
   for(auto* set : sets) {
     for(auto index = 0u; index < set->binding_count; index++) {
@@ -120,6 +124,8 @@ auto Shader::ShaderData::preprocess(std::string_view name,
 
   for (auto& macro : this->macros) options.AddMacroDefinition(macro);
 
+  options.SetTargetEnvironment(target_environment, target_env_version);
+  options.SetTargetSpirv(target_spirv_version);  
   auto result =
       compiler.PreprocessGlsl(src.begin(), kind, name.begin(), options);
 
@@ -139,6 +145,8 @@ auto Shader::ShaderData::assemblize(std::string_view name,
 
   for (auto& macro : this->macros) options.AddMacroDefinition(macro);
 
+  options.SetTargetEnvironment(target_environment, target_env_version);
+  options.SetTargetSpirv(target_spirv_version);
   if (optimize)
     options.SetOptimizationLevel(shaderc_optimization_level_performance);
 
@@ -159,10 +167,12 @@ auto Shader::ShaderData::assemble(shaderc_shader_kind kind,
   auto options = shaderc::CompileOptions();
 
   for (auto& macro : this->macros) options.AddMacroDefinition(macro);
-
+  
+  options.SetTargetEnvironment(target_environment, target_env_version);
+  options.SetTargetSpirv(target_spirv_version);
   if (optimize)
     options.SetOptimizationLevel(shaderc_optimization_level_performance);
-
+  
   auto result = compiler.AssembleToSpv(src.begin(), src.size(), options);
 
   OhmException(

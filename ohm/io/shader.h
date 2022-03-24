@@ -68,6 +68,8 @@ class Shader {
   struct ShaderData;
   std::shared_ptr<ShaderData> data;
 };
+
+using VariableType = Shader::Stage::Variable::Type;
 }  // namespace v1
 }  // namespace io
 
