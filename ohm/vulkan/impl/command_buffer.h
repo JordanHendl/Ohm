@@ -4,8 +4,8 @@
 #include <thread>
 #include <unordered_map>
 #include <vulkan/vulkan.hpp>
-#include "ohm/api/commands.h"
 #include "device.h"
+#include "ohm/api/commands.h"
 
 namespace ohm {
 namespace ovk {

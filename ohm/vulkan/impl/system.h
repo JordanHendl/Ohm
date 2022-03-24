@@ -8,8 +8,8 @@
 #include "command_buffer.h"
 #include "device.h"
 #include "instance.h"
-#include "ohm/io/dlloader.h"
 #include "memory.h"
+#include "ohm/io/dlloader.h"
 
 namespace ohm {
 namespace ovk {

@@ -1,8 +1,8 @@
 #pragma once
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 namespace ohm {
 namespace io {
@@ -14,6 +14,7 @@ inline namespace v1 {
 class Shader {
  public:
   enum class Type : int {
+    None,
     Vertex,
     Fragment,
     Geometry,
@@ -46,15 +47,18 @@ class Shader {
 
   explicit Shader();
   explicit Shader(const std::vector<std::string>& glsl_to_load);
+  explicit Shader(
+      const std::vector<std::pair<std::string, std::string>>& inline_files);
   explicit Shader(Shader&& mv);
   ~Shader();
   auto operator=(Shader&& mv) -> Shader&;
   auto stages() -> const std::vector<Stage>&;
   auto save(std::string_view path) -> bool;
   auto load(std::string_view path) -> bool;
+
  private:
-   struct ShaderData;
-   std::shared_ptr<ShaderData> data;
+  struct ShaderData;
+  std::shared_ptr<ShaderData> data;
 };
 }  // namespace v1
 }  // namespace io

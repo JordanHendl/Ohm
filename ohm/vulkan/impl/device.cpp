@@ -6,9 +6,9 @@
 
 #include "device.h"
 #include <memory>
-#include "ohm/api/exception.h"
 #include "error.h"
 #include "instance.h"
+#include "ohm/api/exception.h"
 #include "ohm/io/dlloader.h"
 #include "system.h"
 

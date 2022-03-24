@@ -10,12 +10,12 @@
 #include <iostream>
 #include <map>
 #include <vector>
-#include "ohm/api/exception.h"
 #include "buffer.h"
 #include "device.h"
 #include "error.h"
 #include "image.h"
 #include "memory.h"
+#include "ohm/api/exception.h"
 
 namespace ohm {
 namespace ovk {

@@ -12,8 +12,8 @@
 #include <string>
 #include <vector>
 #include <vulkan/vulkan.hpp>
-#include "ohm/api/exception.h"
 #include "error.h"
+#include "ohm/api/exception.h"
 #include "ohm/io/dlloader.h"
 
 namespace ohm {

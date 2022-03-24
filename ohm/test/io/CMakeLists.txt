@@ -1,0 +1,8 @@
+if(Build_Tests)
+find_package(GTest)
+if(GTest_FOUND)
+  add_executable(test_ohm_io test.cpp)
+  target_link_libraries(test_ohm_io GTest::GTest io)
+  add_test(NAME test_ohm_io COMMAND test_ohm_io)
+endif()
+endif()
