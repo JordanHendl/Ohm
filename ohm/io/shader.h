@@ -64,6 +64,7 @@ class Shader {
 
       size_t set;
       size_t binding;
+      size_t size;
       Type type;
     };
 
@@ -76,6 +77,7 @@ class Shader {
   };
 
   explicit Shader();
+  explicit Shader(std::string_view osh_file);
   explicit Shader(const std::vector<std::string>& glsl_to_load);
   explicit Shader(
       const std::vector<std::pair<std::string, std::string>>& inline_files);
@@ -91,7 +93,9 @@ class Shader {
   std::shared_ptr<ShaderData> data;
 };
 
+using ShaderType = Shader::Type;
 using VariableType = Shader::Stage::Variable::Type;
+using AttributeType = Shader::Stage::Attribute::Type;
 }  // namespace v1
 }  // namespace io
 

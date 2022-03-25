@@ -9,6 +9,8 @@ set(vulkan_impl_srcs
      buffer.cpp
      image.cpp
      command_buffer.cpp
+     shader.cpp
+     pipeline.cpp
    )
 
 set(vulkan_impl_includes

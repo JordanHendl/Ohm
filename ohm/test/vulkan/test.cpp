@@ -7,9 +7,39 @@
 
 namespace ohm {
 using API = ohm::Vulkan;
+const char* test_compute_shader = {
+    "#version 450 core\n"
+    "#extension GL_ARB_separate_shader_objects : enable\n"
+    "#extension GL_GOOGLE_include_directive    : enable\n"
+    "#define BLOCK_SIZE_X 32\n"
+    "#define BLOCK_SIZE_Y 32\n"
+    "#define BLOCK_SIZE_Z 1 \n"
+    "layout( local_size_x = BLOCK_SIZE_X, local_size_y = BLOCK_SIZE_Y, "
+    "local_size_z = BLOCK_SIZE_Z ) in ; \n"
+    "layout( binding = 0, rgba32f ) coherent restrict readonly  uniform "
+    "image2D input_tex ;\n"
+    "layout( binding = 1, rgba32f ) coherent restrict writeonly uniform "
+    "image2D output_tex;\n"
+    "layout( binding = 3 ) buffer Configuration\n"
+    "{\n"
+    "  float threshold;\n"
+    "} config;\n"
+    "void main()\n"
+    "{\n"
+    "  const ivec2 tex_coords = ivec2( gl_GlobalInvocationID.x, "
+    "gl_GlobalInvocationID.y            ) ;\n"
+    "  const vec4  color      = imageLoad( input_tex, tex_coords               "
+    "                    ) ;\n"
+    "  const float intensity  = ( 0.2126 * color.r + 0.7152 * color.g + 0.0722 "
+    "* color.b ) * color.a ;\n"
+    "  const float out_value  = intensity > config.threshold ? 1.0 : 0.0       "
+    "                      ;\n"
+    "  \n"
+    "  vec4 out_vec = vec4( vec3( out_value ), 1.0 ) ;\n"
+    "  imageStore( output_tex, tex_coords, out_vec ) ;\n"
+    "}\n"};
 
 namespace sys {
-
 auto test_name() -> bool {
   auto name = System<API>::name();
   return !name.empty();
@@ -218,7 +248,8 @@ auto test_creation() -> bool {
 
 namespace pipeline {
 auto test_creation() -> bool {
-  auto pipeline = Pipeline<API>(0, {});
+  auto pipeline =
+      Pipeline<API>(0, {{{"test_shader.comp.glsl", test_compute_shader}}});
   return pipeline.handle() >= 0;
 }
 }  // namespace pipeline
@@ -250,6 +281,8 @@ TEST(Vulkan, Commands) {
   EXPECT_TRUE(ohm::commands::test_host_to_array_copy());
   EXPECT_TRUE(ohm::commands::test_gpu_array_copy());
 }
+
+TEST(Vulkan, Pipeline) { EXPECT_TRUE(ohm::pipeline::test_creation()); }
 
 auto main(int argc, char* argv[]) -> int {
 #ifdef Ohm_Debug

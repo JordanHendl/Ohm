@@ -1,8 +1,72 @@
 #pragma once
+#include <string>
+#include <utility>
 #include "descriptor.h"
+#include "ohm/io/shader.h"
 #include "render_pass.h"
 namespace ohm {
-struct PipelineInfo {};
+enum class Topology : int {
+  Point,
+  Line,
+  LineStrip,
+  Triangle,
+  TriangleStrip,
+};
+
+struct Viewport {
+  size_t width;
+  size_t height;
+  size_t x_pos;
+  size_t y_pos;
+  size_t max_depth;
+
+  Viewport() {
+    this->width = 1280;
+    this->height = 1024;
+    this->x_pos = 0;
+    this->y_pos = 0;
+    this->max_depth = 1.f;
+  }
+};
+
+struct PipelineInfo {
+  std::string file_name;
+  std::vector<Viewport> viewports;
+  bool stencil_test;
+  bool depth_test;
+  Topology topology;
+
+  // name : shader contents.
+  std::vector<std::pair<std::string, std::string>> inline_files;
+
+  PipelineInfo() {
+    this->topology = Topology::Triangle;
+    this->depth_test = false;
+    this->stencil_test = false;
+  }
+
+  PipelineInfo(std::string_view file) {
+    this->file_name = file;
+    this->topology = Topology::Triangle;
+    this->depth_test = false;
+    this->stencil_test = false;
+  }
+
+  PipelineInfo(std::vector<std::pair<std::string, std::string>> files) {
+    this->inline_files = files;
+    this->topology = Topology::Triangle;
+    this->depth_test = false;
+    this->stencil_test = false;
+  }
+
+  PipelineInfo(std::string_view file, Viewport viewport) {
+    this->file_name = file;
+    this->viewports.push_back(viewport);
+    this->topology = Topology::Triangle;
+    this->depth_test = false;
+    this->stencil_test = false;
+  }
+};
 
 template <typename API, typename Allocator>
 class RenderPass;

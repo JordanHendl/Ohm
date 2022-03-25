@@ -353,6 +353,18 @@ auto Vulkan::RenderPass::destroy(int32_t handle) Ohm_NOEXCEPT -> void {}
 
 auto Vulkan::Pipeline::create(int gpu, const PipelineInfo& info) Ohm_NOEXCEPT
     -> int32_t {
+  auto& device = ovk::system().devices[gpu];
+  auto index = 0;
+  for (auto& pipe : ovk::system().pipeline) {
+    if (!pipe.initialized()) {
+      pipe = std::move(ovk::Pipeline(device, info));
+      return index;
+    }
+    index++;
+  }
+
+  OhmException(true, Error::APIError,
+               "Too many pipelines. API has run out of allocation space.");
   return -1;
 }
 
@@ -362,7 +374,17 @@ auto Vulkan::Pipeline::create_from_rp(int32_t rp_handle,
   return -1;
 }
 
-auto Vulkan::Pipeline::destroy(int32_t handle) Ohm_NOEXCEPT -> void {}
+auto Vulkan::Pipeline::destroy(int32_t handle) Ohm_NOEXCEPT -> void {
+  OhmException(handle < 0, Error::APIError,
+               "Attempting to delete an invalid pipeline handle.");
+  auto& pipe = ovk::system().pipeline[handle];
+  auto tmp = ovk::Pipeline();
+
+  OhmException(
+      !pipe.initialized(), Error::APIError,
+      "Attempting to destroy a pipeline object that is not initialized.");
+  tmp = std::move(pipe);
+}
 
 auto Vulkan::Pipeline::descriptor(int32_t handle) Ohm_NOEXCEPT -> int32_t {
   return -1;

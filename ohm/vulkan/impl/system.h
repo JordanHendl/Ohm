@@ -7,9 +7,11 @@
 #include "buffer.h"
 #include "command_buffer.h"
 #include "device.h"
+#include "image.h"
 #include "instance.h"
 #include "memory.h"
 #include "ohm/io/dlloader.h"
+#include "pipeline.h"
 
 namespace ohm {
 namespace ovk {
@@ -23,12 +25,18 @@ struct System {
   std::vector<std::string> validation_layers;
   std::vector<ovk::Device> devices;
   std::vector<ohm::Gpu> gpus;
+
   std::array<Memory, NUM_CACHE> memory;
   std::array<Buffer, NUM_CACHE> buffer;
+  std::array<Image, NUM_CACHE> image;
   std::array<CommandBuffer, NUM_CACHE> commands;
+  std::array<Pipeline, NUM_CACHE> pipeline;
   vk::AllocationCallbacks* allocate_cb;
 
   auto shutdown() -> void {
+    for (auto& thing : this->image) {
+      auto tmp = std::move(thing);
+    }
     for (auto& thing : this->buffer) {
       auto tmp = std::move(thing);
     }
@@ -38,12 +46,13 @@ struct System {
     for (auto& thing : this->commands) {
       auto tmp = std::move(thing);
     }
-
+    for (auto& thing : this->pipeline) {
+      auto tmp = std::move(thing);
+    }
     for (auto& thing : this->devices) {
       ovk::clearPools(thing);
       auto tmp = std::move(thing);
     }
-
     { auto tmp = std::move(this->instance); }
     this->loader.reset();
   }

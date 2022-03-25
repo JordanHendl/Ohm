@@ -214,7 +214,7 @@ auto Shader::ShaderData::reflect_variables(Shader::Stage& stage,
       tmp.binding = binding->binding;
       tmp.type = convert(binding->descriptor_type);
       tmp.set = set->set;
-
+      tmp.size = binding->count;
       stage.variables[binding->name] = tmp;
     }
   }
@@ -286,6 +286,11 @@ auto Shader::ShaderData::assemble(shaderc_shader_kind kind,
 }
 
 Shader::Shader() { this->data = std::make_shared<Shader::ShaderData>(); }
+
+Shader::Shader(std::string_view osh_file) {
+  this->data = std::make_shared<Shader::ShaderData>();
+  this->load(osh_file);
+}
 
 Shader::Shader(const std::vector<std::string>& glsl_to_load) {
   this->data = std::make_shared<Shader::ShaderData>();
