@@ -342,5 +342,30 @@ auto Vulkan::Commands::synchronize(int32_t handle) Ohm_NOEXCEPT -> void {
                "Attempting to use object that is not initialized.");
   cmd.synchronize();
 }
+
+auto Vulkan::RenderPass::create(int gpu,
+                                const RenderPassInfo& info) Ohm_NOEXCEPT
+    -> int32_t {
+  return -1;
+}
+
+auto Vulkan::RenderPass::destroy(int32_t handle) Ohm_NOEXCEPT -> void {}
+
+auto Vulkan::Pipeline::create(int gpu, const PipelineInfo& info) Ohm_NOEXCEPT
+    -> int32_t {
+  return -1;
+}
+
+auto Vulkan::Pipeline::create_from_rp(int32_t rp_handle,
+                                      const PipelineInfo& info) Ohm_NOEXCEPT
+    -> int32_t {
+  return -1;
+}
+
+auto Vulkan::Pipeline::destroy(int32_t handle) Ohm_NOEXCEPT -> void {}
+
+auto Vulkan::Pipeline::descriptor(int32_t handle) Ohm_NOEXCEPT -> int32_t {
+  return -1;
+}
 }  // namespace v1
 }  // namespace ohm

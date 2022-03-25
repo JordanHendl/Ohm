@@ -158,7 +158,7 @@ auto PoolAllocator<API>::chooseHeap(int gpu,
     index++;
   }
   //@JH TODO This needs to be handled as its a very real scenario. Release
-  //builds currently do 0 to counteract this. We're saved by the exception in
+  // builds currently do 0 to counteract this. We're saved by the exception in
   // debug.
   OhmException(true, Error::LogicError,
                "Could not find a valid memory heap to allocate from.");

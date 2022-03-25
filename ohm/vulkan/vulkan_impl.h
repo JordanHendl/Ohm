@@ -72,6 +72,24 @@ struct Vulkan {
     static auto submit(int32_t handle) Ohm_NOEXCEPT -> void;
     static auto synchronize(int32_t handle) Ohm_NOEXCEPT -> void;
   };
+
+  struct RenderPass {
+    static auto create(int gpu, const RenderPassInfo& info) Ohm_NOEXCEPT
+        -> int32_t;
+    static auto destroy(int32_t handle) Ohm_NOEXCEPT -> void;
+  };
+
+  /** Commands-related function API
+   */
+  struct Pipeline {
+    static auto create(int gpu, const PipelineInfo& info) Ohm_NOEXCEPT
+        -> int32_t;
+    static auto create_from_rp(int32_t rp_handle,
+                               const PipelineInfo& info) Ohm_NOEXCEPT
+        -> int32_t;
+    static auto destroy(int32_t handle) Ohm_NOEXCEPT -> void;
+    static auto descriptor(int32_t handle) Ohm_NOEXCEPT -> int32_t;
+  };
 };
 }  // namespace v1
 }  // namespace ohm

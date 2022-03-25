@@ -209,6 +209,19 @@ auto test_gpu_array_copy() -> bool {
   return true;
 }
 }  // namespace commands
+namespace render_pass {
+auto test_creation() -> bool {
+  auto rp = RenderPass<API>();
+  return rp.handle() >= 0;
+}
+}  // namespace render_pass
+
+namespace pipeline {
+auto test_creation() -> bool {
+  auto pipeline = Pipeline<API>(0, {});
+  return pipeline.handle() >= 0;
+}
+}  // namespace pipeline
 }  // namespace ohm
 
 TEST(Vulkan, System) {
