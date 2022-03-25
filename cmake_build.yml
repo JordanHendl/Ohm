@@ -16,8 +16,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    
+    - name: Configure SDL
+      run: sudo apt-get -y install libsdl2-dev
 
-    - name: Configure Dependencies
+    - name: Configure Vulkan
+      run: sudo apt-get -y install libvulkan-dev
+
+    - name: Configure Shaderc
       run: git clone https://github.com/google/shaderc.git
       run: cd ./shaderc
       run: ./utils/git-sync-deps
