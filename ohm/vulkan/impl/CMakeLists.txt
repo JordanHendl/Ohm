@@ -1,4 +1,4 @@
-find_package(Vulkan)
+find_package(Vulkan REQUIRED)
 find_package(SDL2 REQUIRED)
 
 set(vulkan_impl_srcs
