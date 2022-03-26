@@ -20,7 +20,7 @@ struct GpuMemoryHeap {
  * Very slow, but is what you get.
  */
 template <typename API>
-struct DefaultAllocator {
+struct RawAllocator {
   /** Function to choose which memory heap the allocation should pull from.
    * Default implementation is very naiive, but can be overloaded to be better
    * if desired.
@@ -99,7 +99,7 @@ inline auto operator&(const HeapType& a, const HeapType& b) -> bool {
 }
 
 template <typename API>
-auto DefaultAllocator<API>::chooseHeap(int gpu,
+auto RawAllocator<API>::chooseHeap(int gpu,
                                        const std::vector<GpuMemoryHeap>& heap,
                                        HeapType requested, size_t size) -> int {
   auto index = 0;
@@ -116,13 +116,13 @@ auto DefaultAllocator<API>::chooseHeap(int gpu,
 }
 
 template <typename API>
-auto DefaultAllocator<API>::allocate(int gpu, HeapType type, int heap_index,
+auto RawAllocator<API>::allocate(int gpu, HeapType type, int heap_index,
                                      size_t size) -> int32_t {
   return API::Memory::allocate(gpu, type, heap_index, size);
 }
 
 template <typename API>
-auto DefaultAllocator<API>::destroy(int32_t handle) -> void {
+auto RawAllocator<API>::destroy(int32_t handle) -> void {
   if (handle >= 0) API::Memory::destroy(handle);
 }
 
@@ -228,4 +228,7 @@ auto PoolAllocator<API>::destroy(int32_t handle) -> void {
     }
   }
 }
+
+template<typename API>
+using DefaultAllocator = PoolAllocator<API>;
 }  // namespace ohm

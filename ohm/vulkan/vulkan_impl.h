@@ -17,8 +17,8 @@ struct Vulkan {
     static auto initialize() Ohm_NOEXCEPT -> void;
     static auto shutdown() Ohm_NOEXCEPT -> void;
     static auto name() Ohm_NOEXCEPT -> std::string;
-    static auto setParameter(std::string_view str) Ohm_NOEXCEPT -> void;
-    static auto setDebugParameter(std::string_view str) Ohm_NOEXCEPT -> void;
+    static auto set_parameter(std::string_view str) Ohm_NOEXCEPT -> void;
+    static auto set_debug_parameter(std::string_view str) Ohm_NOEXCEPT -> void;
     static auto devices() Ohm_NOEXCEPT -> std::vector<Gpu>;
   };
 

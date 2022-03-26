@@ -142,7 +142,7 @@ void Instance::initialize(io::Dlloader& loader,
   info.setPApplicationInfo(&app_info);
 
   this->m_instance =
-      error(vk::createInstance(info, allocation, Instance::dispatch()));
+      error(vk::createInstance(info, allocation, this->dispatch()));
 
   // Reinitialize dispatch with created instance.
   this->m_dispatch.init(this->m_instance,
@@ -223,9 +223,9 @@ auto Instance::operator=(Instance&& mv) -> Instance& {
 vk::ApplicationInfo Instance::makeAppInfo() {
   vk::ApplicationInfo info;
 
-  info.setPEngineName("Ohm");
+  info.setPEngineName(this->app_name.c_str());
   info.setPApplicationName(this->app_name.c_str());
-  info.setApiVersion(VK_MAKE_VERSION(1, 1, 0));
+  info.setApiVersion(VK_MAKE_API_VERSION(0, 1, 1, 0));
   info.setEngineVersion(VK_MAKE_VERSION(0, 0, 0));
 
   return info;

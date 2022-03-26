@@ -296,25 +296,25 @@ auto CommandBuffer::begin() -> void {
   this->record();
 }
 
-auto CommandBuffer::copy(const Buffer& src, Buffer& dst, size_t) -> void {
-  vk::BufferCopy region;
-  vk::MemoryBarrier barrier;
-
-  barrier.setSrcAccessMask(vk::AccessFlagBits::eMemoryRead);
-  barrier.setDstAccessMask(vk::AccessFlagBits::eMemoryWrite);
-
-  region.setSize(std::min(src.size(), dst.size()));
-  region.setSrcOffset(src.memory().offset);
-  region.setDstOffset(dst.memory().offset);
+auto CommandBuffer::copy(const Buffer& src, Buffer& dst, size_t amt) -> void {
+  auto& dispatch = this->m_device->dispatch();
+  auto region = vk::BufferCopy();
+  
+  auto buffer_size = std::min(src.size(), dst.size());
+  auto amt_size = std::min(buffer_size, amt * src.elementSize());
+  auto size = amt == 0 ? buffer_size : amt_size;
+  region.setSize(size);
+  region.setSrcOffset(0);
+  region.setDstOffset(0);
 
   std::unique_lock<std::mutex> lock(this->m_lock);
 
   OhmException(!this->m_recording, Error::APIError,
                "Attempting to record to a command buffer without starting a "
                "record operation.");
-  auto function = [&](vk::CommandBuffer& cmd, size_t) {
+  auto function = [&region, &src, &dst, &dispatch](vk::CommandBuffer& cmd, size_t) {
     cmd.copyBuffer(src.buffer(), dst.buffer(), 1, &region,
-                   this->m_device->dispatch());
+                   dispatch);
   };
 
   this->append(function);
@@ -332,7 +332,7 @@ auto CommandBuffer::copy(const Buffer& src, Image& dst, size_t) -> void {
   info.setImageExtent(extent);
   info.setBufferImageHeight(0);
   info.setBufferRowLength(0);
-  info.setImageOffset(dst.memory().offset);
+  info.setImageOffset(0);
   info.setImageSubresource(dst.subresource());
 
   std::unique_lock<std::mutex> lock(this->m_lock);
@@ -369,7 +369,7 @@ auto CommandBuffer::copy(Image& src, Buffer& dst, size_t) -> void {
   info.setImageExtent(extent);
   info.setBufferImageHeight(0);
   info.setBufferRowLength(0);
-  info.setImageOffset(dst.memory().offset);
+  info.setImageOffset(0);
   info.setImageSubresource(src.subresource());
 
   auto function = [&](vk::CommandBuffer& cmd, size_t) {

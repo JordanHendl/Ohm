@@ -72,7 +72,7 @@ auto test_size() -> bool {
 auto test_type() -> bool {
   constexpr auto mem_size = 1024;
   auto memory = Memory<API>(0, HeapType::HostVisible, mem_size);
-  return memory.type() == HeapType::HostVisible;
+  return memory.type() & HeapType::HostVisible;
 }
 
 auto test_offset() -> bool {
@@ -81,7 +81,7 @@ auto test_offset() -> bool {
   auto memory_2 = Memory<API>(memory_1, 1024);
 
   auto same_gpu = memory_2.gpu() == memory_1.gpu();
-  auto correct_size = memory_2.size() == 1024;
+  auto correct_size = memory_2.size() >= 1024;
   return same_gpu && correct_size;
 }
 
@@ -222,7 +222,8 @@ auto test_gpu_array_copy() -> bool {
   commands.copy(array_host, host_array.data());
 
   for (auto& num : host_array) {
-    if (num != 1337) return false;
+    if (num != 1337)
+      return false;
   }
 
   commands.begin();
@@ -233,7 +234,8 @@ auto test_gpu_array_copy() -> bool {
   commands.copy(array_host, host_array.data());
 
   for (auto& num : host_array) {
-    if (num != 0) return false;
+    if (num != 0)
+      return false;
   }
 
   return true;

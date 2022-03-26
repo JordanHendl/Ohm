@@ -67,11 +67,11 @@ auto Vulkan::System::shutdown() Ohm_NOEXCEPT -> void {
   ovk::system().shutdown();
 }
 
-auto Vulkan::System::setParameter(std::string_view) Ohm_NOEXCEPT -> void {
+auto Vulkan::System::set_parameter(std::string_view) Ohm_NOEXCEPT -> void {
   // nop... for now.
 }
 
-auto Vulkan::System::setDebugParameter(std::string_view str) Ohm_NOEXCEPT
+auto Vulkan::System::set_debug_parameter(std::string_view str) Ohm_NOEXCEPT
     -> void {
   ovk::system().validation_layers.push_back(std::string(str));
   ovk::system().instance.addValidationLayer(str.cbegin());
@@ -98,11 +98,11 @@ auto Vulkan::Memory::allocate(int gpu, HeapType requested, size_t heap_index,
       for (auto type_index = 0u; type_index < mem_type_count; type_index++) {
         auto& type = device.memoryProperties().memoryTypes[type_index];
         auto vk_type = vk::MemoryPropertyFlags();
-        if (requested & HeapType::GpuOnly)
-          vk_type = vk_type | vk::MemoryPropertyFlagBits::eDeviceLocal;
         if (requested & HeapType::HostVisible)
           vk_type = vk_type | vk::MemoryPropertyFlagBits::eHostVisible |
                     vk::MemoryPropertyFlagBits::eHostCoherent;
+        else 
+          vk_type = vk_type | vk::MemoryPropertyFlagBits::eDeviceLocal;
 
         if (type.heapIndex == heap_index && (type.propertyFlags & vk_type)) {
           mem = std::move(ovk::Memory(device, size, type_index, requested));

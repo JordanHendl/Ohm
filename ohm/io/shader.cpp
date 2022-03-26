@@ -11,9 +11,9 @@ namespace ohm {
 namespace io {
 inline namespace v1 {
 constexpr auto osh_magic_number = 0x6F686D79676F64;
-constexpr auto target_spirv_version = shaderc_spirv_version_1_3;
+constexpr auto target_spirv_version = shaderc_spirv_version_1_2;
 constexpr auto target_environment = shaderc_target_env_vulkan;
-constexpr auto target_env_version = shaderc_env_version_vulkan_1_2;
+constexpr auto target_env_version = shaderc_env_version_vulkan_1_1;
 
 inline auto sanitize(std::string_view view) -> std::string {
   if (view.find(".osh") == std::string::npos) {

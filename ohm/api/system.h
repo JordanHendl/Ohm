@@ -35,12 +35,12 @@ auto System<API>::name() -> std::string {
 
 template <typename API>
 auto System<API>::setParameter(std::string_view param) -> void {
-  API::System::setParameter(param);
+  API::System::set_parameter(param);
 }
 
 template <typename API>
 auto System<API>::setDebugParameter(std::string_view param) -> void {
-  API::System::setDebugParameter(param);
+  API::System::set_debug_parameter(param);
 }
 
 template <typename API>

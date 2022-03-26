@@ -69,7 +69,7 @@ Memory::Memory(const Memory& parent, unsigned offset) {
   this->heap = parent.heap;
   this->type = parent.type;
 
-  this->offset = offset;
+  this->offset = offset + parent.offset;
 }
 
 Memory::Memory(Memory&& mv) { *this = std::move(mv); }
@@ -114,8 +114,8 @@ auto Memory::map(void** ptr) const -> void {
   OhmException(!this->coherent, Error::LogicError,
                "Attempting to map memory that is not using a mappable heap.");
 
-  vk::DeviceSize offset = 0;
-  vk::DeviceSize amount = this->size;
+  vk::DeviceSize offset = this->offset;
+  vk::DeviceSize amount = this->size - offset;
   vk::MemoryMapFlags flag;
 
   error(this->device->device().mapMemory(this->memory, offset, amount, flag,
