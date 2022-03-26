@@ -262,7 +262,7 @@ std::vector<const char*> Instance::makeExtensionList() {
   this->extensions.clear();
   for (const auto& ext : available_extentions) {
     for (const auto& requested : copy) {
-      if (std::string(ext.extensionName.data()) == requested) {
+      if (std::string(&ext.extensionName[0]) == requested) {
         this->extensions.push_back(requested);
         list.push_back(this->extensions.back().data());
       }
@@ -286,7 +286,7 @@ std::vector<const char*> Instance::makeValidationList() {
   this->validation.clear();
   for (const auto& ext : available_layers) {
     for (const auto& requested : copy) {
-      if (std::string(ext.layerName.data()) == requested) {
+      if (std::string(&ext.layerName[0]) == requested) {
         this->validation.push_back(requested);
         list.push_back(this->validation.back().data());
       }
