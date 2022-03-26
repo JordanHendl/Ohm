@@ -17,7 +17,7 @@ class Pipeline {
   Pipeline(Pipeline&& mv);
   ~Pipeline();
   auto operator=(Pipeline&& mv) -> Pipeline&;
-  auto descriptor() -> Descriptor*;
+  auto descriptor() -> Descriptor;
 
   auto initialized() const -> bool { return this->m_pipeline; }
   auto device() const -> const Device& { return *this->m_device; }
@@ -33,7 +33,7 @@ class Pipeline {
   const RenderPass* m_render_pass;
   Scissors m_scissors;
   Viewports m_viewports;
-  //        DescriptorPool               m_pool                ;
+  DescriptorPool m_pool;
   Device* m_device;
   std::unique_ptr<ovk::Shader> m_shader;
   vk::Pipeline m_pipeline;

@@ -91,13 +91,13 @@ class Device {
   std::vector<std::string> validation;
   float m_score;
 
-  inline void findQueueFamilies();
+  inline auto findQueueFamilies() -> void;
 
-  inline void makeDevice();
+  inline auto makeDevice() -> void;
 
-  inline std::vector<const char*> makeExtensions();
+  inline auto makeExtensions() -> std::vector<const char*>;
 
-  inline std::vector<const char*> makeLayers();
+  inline auto makeLayers() -> std::vector<const char*>;
 };
 }  // namespace ovk
 }  // namespace ohm

@@ -11,6 +11,7 @@ set(vulkan_impl_srcs
      command_buffer.cpp
      shader.cpp
      pipeline.cpp
+     descriptor.cpp
    )
 
 set(vulkan_impl_includes

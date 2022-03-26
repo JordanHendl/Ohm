@@ -21,17 +21,33 @@ class Shader {
   Shader(Shader&& mv);
   ~Shader();
   Shader& operator=(Shader&& mv);
-  auto file() const -> const io::Shader&;
-  auto device() const -> const Device&;
-  auto layout() const -> const vk::DescriptorSetLayout&;
+  auto file() const -> const io::Shader& { return *this->m_file; }
+
+  auto device() const -> const Device& { return *this->m_device; }
+
+  auto layout() const -> const vk::DescriptorSetLayout& {
+    return this->m_layout;
+  }
+
   auto inputs() const
-      -> const std::vector<vk::VertexInputAttributeDescription>&;
+      -> const std::vector<vk::VertexInputAttributeDescription>& {
+    return this->m_inputs;
+  }
+
   auto bindings() const
-      -> const std::vector<vk::VertexInputBindingDescription>&;
+      -> const std::vector<vk::VertexInputBindingDescription>& {
+    return this->m_bindings;
+  }
+
   auto shaderInfos() const
-      -> const std::vector<vk::PipelineShaderStageCreateInfo>&;
+      -> const std::vector<vk::PipelineShaderStageCreateInfo>& {
+    return this->m_infos;
+  }
+
   auto descriptorLayouts() const
-      -> const std::vector<vk::DescriptorSetLayoutBinding>&;
+      -> const std::vector<vk::DescriptorSetLayoutBinding>& {
+    return this->m_descriptors;
+  }
 
  private:
   using SPIRVMap =

@@ -47,7 +47,7 @@ Pipeline::Pipeline(Device& device, const PipelineInfo& info) {
   else
     this->m_shader = std::make_unique<Shader>(device, info.inline_files);
 
-  //      this->m_pool.initialize( *this ) ;
+  this->m_pool.initialize(*this);
   this->init_params();
   this->parse(info);
   this->createLayout();
@@ -158,9 +158,9 @@ auto Pipeline::init_params() -> void {
 }
 
 auto Pipeline::createLayout() -> void {
-  vk::PipelineLayoutCreateInfo info;
-  vk::PushConstantRange range;
-  vk::DescriptorSetLayout desc_layout;
+  auto info = vk::PipelineLayoutCreateInfo();
+  auto range = vk::PushConstantRange();
+  auto desc_layout = vk::DescriptorSetLayout();
 
   desc_layout = this->m_shader->layout();
 
@@ -188,9 +188,13 @@ auto Pipeline::createLayout() -> void {
 }
 
 auto Pipeline::createPipeline() -> void {
-  vk::GraphicsPipelineCreateInfo graphics_info;
-  vk::ComputePipelineCreateInfo compute_info;
-  vk::PipelineVertexInputStateCreateInfo vertex_input;
+  auto graphics_info = vk::GraphicsPipelineCreateInfo();
+  auto compute_info = vk::ComputePipelineCreateInfo();
+  auto vertex_input = vk::PipelineVertexInputStateCreateInfo();
+
+  auto device = this->m_device->device();
+  auto* alloc_cb = this->m_device->allocationCB();
+  auto& dispatch = this->m_device->dispatch();
 
   if (this->graphics()) {
     vertex_input.setVertexAttributeDescriptions(this->m_shader->inputs());
@@ -209,22 +213,20 @@ auto Pipeline::createPipeline() -> void {
     graphics_info.setPDepthStencilState(&this->m_depth_stencil_info);
     //        graphics_info.setRenderPass         ( this->render_pass->pass() );
 
-    this->m_pipeline = error(this->m_device->device().createGraphicsPipeline(
-        this->m_cache, graphics_info, this->m_device->allocationCB(),
-        this->m_device->dispatch()));
+    this->m_pipeline = error(device.createGraphicsPipeline(
+        this->m_cache, graphics_info, alloc_cb, dispatch));
   } else {
     compute_info.setLayout(this->m_layout);
     compute_info.setStage(this->m_shader->shaderInfos()[0]);
 
-    this->m_pipeline = error(this->m_device->device().createComputePipeline(
-        this->m_cache, compute_info, this->m_device->allocationCB(),
-        this->m_device->dispatch()));
+    this->m_pipeline = error(device.createComputePipeline(
+        this->m_cache, compute_info, alloc_cb, dispatch));
   }
 }
 
 auto Pipeline::addViewport(const Viewport& viewport) -> void {
-  vk::Viewport view;
-  vk::Rect2D scissor;
+  auto view = vk::Viewport();
+  auto scissor = vk::Rect2D();
 
   view.setWidth(viewport.width);
   view.setHeight(viewport.height);
@@ -259,11 +261,6 @@ auto Pipeline::parse(const PipelineInfo& info) -> void {
   // TODO add more config to parse.
 }
 
-//    Descriptor* Pipeline::descriptor()
-//    {
-//      Descriptor* tmp = new Descriptor() ;
-//      *tmp = this->m_pool.make() ;
-//      return tmp ;
-//    }
+auto Pipeline::descriptor() -> Descriptor { return this->m_pool.make(); }
 }  // namespace ovk
 }  // namespace ohm

@@ -11,9 +11,7 @@ env:
 
 jobs:
   build:
-    
-    runs-on: ubuntu-latest
-
+    runs-on: [ubuntu-latest, gpu]
     steps:
     - uses: actions/checkout@v2
     
@@ -38,6 +36,14 @@ jobs:
          cmake -B ./build -DBUILD_EXTERNAL=OFF -DEFFCEE_BUILD_SAMPLES=OFF -DEFFCEE_BUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}};
          cd build
          sudo make install -j8
+      with:
+          path: |
+            /usr/local/libshaderc_combined.a
+            /usr/local/include/gtest/
+            /usr/local/lib/libgtest*
+          key: ${{ runner.os }}-build-${{ env.cache-name }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}
 
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
@@ -48,3 +54,5 @@ jobs:
     - name: Test
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}}
+
+        

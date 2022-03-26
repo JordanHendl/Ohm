@@ -84,7 +84,7 @@ class Shader {
   explicit Shader(Shader&& mv);
   ~Shader();
   auto operator=(Shader&& mv) -> Shader&;
-  auto stages() -> const std::vector<Stage>&;
+  auto stages() const -> const std::vector<Stage>&;
   auto save(std::string_view path) -> bool;
   auto load(std::string_view path) -> bool;
 
@@ -94,6 +94,7 @@ class Shader {
 };
 
 using ShaderType = Shader::Type;
+using ShaderVariable = Shader::Stage::Variable;
 using VariableType = Shader::Stage::Variable::Type;
 using AttributeType = Shader::Stage::Attribute::Type;
 }  // namespace v1

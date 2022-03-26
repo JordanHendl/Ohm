@@ -61,6 +61,9 @@ auto convert(vk::Format format) -> ImageFormat {
 }
 
 auto Image::createView() -> vk::ImageView {
+  auto device = this->m_device->device();
+  auto* alloc_cb = this->m_device->allocationCB();
+  auto& dispatch = this->m_device->dispatch();
   vk::ImageViewCreateInfo info;
   vk::ImageSubresourceRange range;
 
@@ -81,11 +84,13 @@ auto Image::createView() -> vk::ImageView {
   info.setFormat(this->format());
   info.setSubresourceRange(range);
 
-  return error(this->m_device->device().createImageView(
-      info, nullptr, this->m_device->dispatch()));
+  return error(device.createImageView(info, alloc_cb, dispatch));
 }
 
 auto Image::createSampler() -> vk::Sampler {
+  auto device = this->m_device->device();
+  auto* alloc_cb = this->m_device->allocationCB();
+  auto& dispatch = this->m_device->dispatch();
   const auto max_anisotropy = 16.0f;
 
   vk::SamplerCreateInfo info;
@@ -106,11 +111,14 @@ auto Image::createSampler() -> vk::Sampler {
   info.setMinLod(0.0f);
   info.setMaxLod(0.0f);
 
-  return error(this->m_device->device().createSampler(
-      info, nullptr, this->m_device->dispatch()));
+  return error(device.createSampler(info, alloc_cb, dispatch));
 }
 
 auto Image::createImage() -> vk::Image {
+  auto device = this->m_device->device();
+  auto p_device = this->m_device->p_device();
+  auto* alloc_cb = this->m_device->allocationCB();
+  auto& dispatch = this->m_device->dispatch();
   vk::ImageCreateInfo info;
   vk::Extent3D extent;
 
@@ -147,17 +155,16 @@ auto Image::createImage() -> vk::Image {
   // don't include it.
   for (auto flag : flags) {
     auto attempt = this->m_usage_flags | flag;
-    auto result = this->m_device->p_device().getImageFormatProperties(
-        info.format, info.imageType, info.tiling, attempt, info.flags,
-        this->m_device->dispatch());
+    auto result = p_device.getImageFormatProperties(info.format, info.imageType,
+                                                    info.tiling, attempt,
+                                                    info.flags, dispatch);
 
     if (result.result == vk::Result::eSuccess) this->m_usage_flags = attempt;
   }
 
   // Finally, set usage and create image.
   info.setUsage(this->m_usage_flags);
-  auto result = this->m_device->device().createImage(
-      info, nullptr, this->m_device->dispatch());
+  auto result = error(device.createImage(info, alloc_cb, dispatch));
   return result;
 }
 
@@ -204,14 +211,14 @@ Image::Image(Image&& mv) { *this = std::move(mv); }
 Image::~Image() {
   if (this->m_should_delete) {
     if (this->m_image && this->m_device) {
-      this->m_device->device().destroy(this->m_sampler, nullptr,
-                                       this->m_device->dispatch());
-      this->m_device->device().destroy(this->m_view, nullptr,
-                                       this->m_device->dispatch());
+      auto device = this->m_device->device();
+      auto* alloc_cb = this->m_device->allocationCB();
+      auto& dispatch = this->m_device->dispatch();
+      device.destroy(this->m_sampler, alloc_cb, dispatch);
+      device.destroy(this->m_view, alloc_cb, dispatch);
 
       if (!this->m_preallocated)
-        this->m_device->device().destroy(this->m_image, nullptr,
-                                         this->m_device->dispatch());
+        device.destroy(this->m_image, nullptr, dispatch);
     }
     this->m_layout = vk::ImageLayout::eUndefined;
     this->m_old_layout = vk::ImageLayout::eUndefined;
@@ -349,6 +356,8 @@ auto Image::initialize(Device& device, const ImageInfo& info,
 }
 
 auto Image::bind(Memory& memory) -> void {
+  auto device = this->m_device->device();
+  auto& dispatch = this->m_device->dispatch();
   OhmException(
       !this->initialized(), Error::APIError,
       "Attempting to bind memory to a Image that has not been initialized.");
@@ -357,8 +366,8 @@ auto Image::bind(Memory& memory) -> void {
                "allocated.");
 
   this->m_memory = &memory;
-  error(this->m_device->device().bindImageMemory(
-      this->m_image, memory.memory, memory.offset, this->m_device->dispatch()));
+  error(device.bindImageMemory(this->m_image, memory.memory, memory.offset,
+                               dispatch));
   this->m_view = this->createView();
   this->m_sampler = this->createSampler();
 

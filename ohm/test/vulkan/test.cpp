@@ -285,12 +285,9 @@ TEST(Vulkan, Commands) {
 TEST(Vulkan, Pipeline) { EXPECT_TRUE(ohm::pipeline::test_creation()); }
 
 auto main(int argc, char* argv[]) -> int {
-#ifdef Ohm_Debug
   ohm::System<ohm::API>::setDebugParameter("VK_LAYER_KHRONOS_validation");
   ohm::System<ohm::API>::setDebugParameter(
-
       "VK_LAYER_LUNARG_standard_validation");
-#endif
   ohm::System<ohm::API>::initialize();
   testing::InitGoogleTest(&argc, argv);
   auto success = RUN_ALL_TESTS();

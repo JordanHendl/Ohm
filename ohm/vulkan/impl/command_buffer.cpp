@@ -36,10 +36,8 @@ auto CommandBuffer::create_pool(Family queue_family) -> vk::CommandPool {
   auto iter = queue_map.find(queue_family);
   if (iter == queue_map.end()) {
     auto pool = error(this->m_device->device().createCommandPool(
-                                 info, this->m_device->allocationCB(),
-                                 this->m_device->dispatch()));
-    iter = queue_map.insert(
-        iter, {queue_family, pool});
+        info, this->m_device->allocationCB(), this->m_device->dispatch()));
+    iter = queue_map.insert(iter, {queue_family, pool});
   };
 
   return iter->second;

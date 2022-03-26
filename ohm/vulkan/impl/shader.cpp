@@ -138,13 +138,56 @@ auto convert(vk::ShaderStageFlagBits flag) -> io::ShaderType {
   }
 }
 
-void Shader::parse() {
-  std::map<std::string, vk::DescriptorSetLayoutBinding> binding_map;
-  vk::DescriptorSetLayoutBinding binding;
-  vk::ShaderModuleCreateInfo module_info;
-  vk::PipelineShaderStageCreateInfo stage_info;
-  vk::VertexInputAttributeDescription attr;
-  vk::VertexInputBindingDescription bind;
+Shader::Shader() { this->m_rate = vk::VertexInputRate::eVertex; }
+
+Shader::Shader(Device& device, std::string_view path) {
+  this->m_rate = vk::VertexInputRate::eVertex;
+  this->m_device = &device;
+  this->m_file = std::make_unique<io::Shader>(path);
+
+  this->parse();
+  this->makeDescriptorLayout();
+  this->makeShaderModules();
+  this->makePipelineShaderInfos();
+}
+
+Shader::Shader(Device& device,
+               std::vector<std::pair<std::string, std::string>> inline_files) {
+  this->m_rate = vk::VertexInputRate::eVertex;
+  this->m_device = &device;
+  this->m_file = std::make_unique<io::Shader>(inline_files);
+
+  this->parse();
+  this->makeDescriptorLayout();
+  this->makeShaderModules();
+  this->makePipelineShaderInfos();
+}
+
+Shader::~Shader() {
+  auto device = this->m_device->device();
+  auto* alloc_cb = this->m_device->allocationCB();
+  auto& dispatch = this->m_device->dispatch();
+
+  for (auto module : this->m_modules) {
+    device.destroy(module.second, alloc_cb, dispatch);
+  }
+
+  if (this->m_layout) device.destroy(this->m_layout, alloc_cb, dispatch);
+
+  this->m_modules.clear();
+  this->m_inputs.clear();
+  this->m_descriptors.clear();
+  this->m_bindings.clear();
+  this->m_spirv_map.clear();
+  this->m_infos.clear();
+}
+
+auto Shader::parse() -> void {
+  auto binding_map = std::map<std::string, vk::DescriptorSetLayoutBinding>();
+  auto binding = vk::DescriptorSetLayoutBinding();
+  auto module_info = vk::ShaderModuleCreateInfo();
+  auto attr = vk::VertexInputAttributeDescription();
+  auto bind = vk::VertexInputBindingDescription();
 
   auto offset = 0u;
   for (auto& stage : this->m_file->stages()) {
@@ -188,108 +231,40 @@ void Shader::parse() {
   }
 }
 
-void Shader::makeDescriptorLayout() {
-  vk::DescriptorSetLayoutCreateInfo info;
+auto Shader::makeDescriptorLayout() -> void {
+  auto info = vk::DescriptorSetLayoutCreateInfo();
 
   info.setBindings(this->m_descriptors);
   this->m_layout = error(this->m_device->device().createDescriptorSetLayout(
       info, this->m_device->allocationCB(), this->m_device->dispatch()));
 }
 
-void Shader::makeShaderModules() {
-  vk::ShaderModule mod;
-
+auto Shader::makeShaderModules() -> void {
+  auto device = this->m_device->device();
+  auto* alloc_cb = this->m_device->allocationCB();
+  auto& dispatch = this->m_device->dispatch();
+  auto mod = vk::ShaderModule();
   this->m_modules.clear();
 
   for (auto shader : this->m_spirv_map) {
-    mod = error(this->m_device->device().createShaderModule(
-        shader.second, this->m_device->allocationCB(),
-        this->m_device->dispatch()));
+    mod = error(device.createShaderModule(shader.second, alloc_cb, dispatch));
     this->m_modules[convert(shader.first)] = mod;
   }
 }
 
-void Shader::makePipelineShaderInfos() {
-  vk::PipelineShaderStageCreateInfo info;
-  unsigned iter;
+auto Shader::makePipelineShaderInfos() -> void {
+  auto info = vk::PipelineShaderStageCreateInfo();
+  auto iter = 0u;
 
   this->m_infos.clear();
   this->m_infos.resize(this->m_modules.size());
 
-  iter = 0;
-  for (auto it : this->m_modules) {
+  for (auto& it : this->m_modules) {
     info.setStage(convert(it.first));
     info.setModule(it.second);
     info.setPName("main");
     this->m_infos[iter++] = info;
   }
-}
-
-Shader::Shader() { this->m_rate = vk::VertexInputRate::eVertex; }
-
-Shader::~Shader() {
-  for (auto module : this->m_modules) {
-    this->m_device->device().destroy(module.second,
-                                     this->m_device->allocationCB(),
-                                     this->m_device->dispatch());
-  }
-
-  if (this->m_layout)
-    this->m_device->device().destroy(this->m_layout,
-                                     this->m_device->allocationCB(),
-                                     this->m_device->dispatch());
-
-  this->m_modules.clear();
-  this->m_inputs.clear();
-  this->m_descriptors.clear();
-  this->m_bindings.clear();
-  this->m_spirv_map.clear();
-  this->m_infos.clear();
-}
-
-const io::Shader& Shader::file() const { return *this->m_file; }
-
-const Device& Shader::device() const { return *this->m_device; }
-
-const vk::DescriptorSetLayout& Shader::layout() const { return this->m_layout; }
-
-const std::vector<vk::VertexInputAttributeDescription>& Shader::inputs() const {
-  return this->m_inputs;
-}
-
-const std::vector<vk::VertexInputBindingDescription>& Shader::bindings() const {
-  return this->m_bindings;
-}
-
-const std::vector<vk::PipelineShaderStageCreateInfo>& Shader::shaderInfos()
-    const {
-  return this->m_infos;
-}
-
-const std::vector<vk::DescriptorSetLayoutBinding>& Shader::descriptorLayouts()
-    const {
-  return this->m_descriptors;
-}
-
-Shader::Shader(Device& device, std::string_view path) {
-  this->m_device = &device;
-  this->m_file = std::make_unique<io::Shader>(path);
-
-  this->parse();
-  this->makeDescriptorLayout();
-  this->makeShaderModules();
-  this->makePipelineShaderInfos();
-}
-
-Shader::Shader(Device& device,
-               std::vector<std::pair<std::string, std::string>> inline_files) {
-  this->m_device = &device;
-  this->m_file = std::make_unique<io::Shader>(inline_files);
-
-  this->parse();
-  this->makeDescriptorLayout();
-  this->makeShaderModules();
-  this->makePipelineShaderInfos();
 }
 }  // namespace ovk
 }  // namespace ohm
