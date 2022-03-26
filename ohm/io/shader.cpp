@@ -145,7 +145,7 @@ struct Shader::ShaderData {
 
 auto Shader::ShaderData::reflect(Shader::Stage& stage) -> void {
   constexpr auto success = SPV_REFLECT_RESULT_SUCCESS;
-
+  
   auto module = SpvReflectShaderModule{};
   auto& spv = stage.spirv;
   auto result = spvReflectCreateShaderModule(spv.size() * sizeof(uint32_t),
@@ -154,6 +154,8 @@ auto Shader::ShaderData::reflect(Shader::Stage& stage) -> void {
 
   this->reflect_variables(stage, module);
   this->reflect_io(stage, module);
+  (void)result;
+  (void)success;
 }
 
 auto Shader::ShaderData::reflect_io(Shader::Stage& stage,
@@ -172,7 +174,7 @@ auto Shader::ShaderData::reflect_io(Shader::Stage& stage,
   count = 0u;
   result = spvReflectEnumerateOutputVariables(&module, &count, nullptr);
   OhmException(result != success, Error::LogicError, "Failed to enumerate SPV");
-
+  
   auto outputs = std::vector<SpvReflectInterfaceVariable*>(count);
   result = spvReflectEnumerateOutputVariables(&module, &count, outputs.data());
   OhmException(result != success, Error::LogicError, "Failed to enumerate SPV");
@@ -193,6 +195,8 @@ auto Shader::ShaderData::reflect_io(Shader::Stage& stage,
     attribute.type = convert(output->format);
     stage.out_attributes.push_back(attribute);
   }
+  (void)result;
+  (void)success;
 }
 
 auto Shader::ShaderData::reflect_variables(Shader::Stage& stage,
@@ -218,6 +222,8 @@ auto Shader::ShaderData::reflect_variables(Shader::Stage& stage,
       stage.variables[binding->name] = tmp;
     }
   }
+  (void)success;
+  (void)result;
 }
 auto Shader::ShaderData::preprocess(std::string_view name,
                                     shaderc_shader_kind kind,
