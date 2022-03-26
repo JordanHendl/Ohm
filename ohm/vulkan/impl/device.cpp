@@ -140,7 +140,7 @@ auto Device::makeExtensions() -> std::vector<const char*> {
   this->extensions.clear();
   for (const auto& ext : available_extentions) {
     for (const auto& requested : copy) {
-      if (std::string(ext.extensionName.data()) == requested) {
+      if (std::string(&ext.extensionName[0]) == requested) {
         this->extensions.push_back(requested);
         list.push_back(this->extensions.back().data());
       }
@@ -160,7 +160,7 @@ auto Device::makeLayers() -> std::vector<const char*> {
   this->validation.clear();
   for (const auto& ext : available_layers) {
     for (const auto& requested : copy) {
-      if (std::string(ext.layerName.data()) == requested) {
+      if (std::string(&ext.layerName[0]) == requested) {
         this->validation.push_back(requested);
         list.push_back(this->validation.back().data());
       }
@@ -276,7 +276,7 @@ auto Device::vendor() const -> unsigned long long {
 }
 
 auto Device::name() -> std::string_view {
-  return this->properties.deviceName.data();
+  return &this->properties.deviceName[0];
 }
 
 auto Device::addExtension(const char* extension) -> void {
