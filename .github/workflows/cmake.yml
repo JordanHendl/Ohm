@@ -30,14 +30,6 @@ jobs:
         sudo apt update
         sudo apt install vulkan-sdk
     
-    - name: Add Dependancy- googletest
-      run: |
-        git clone https://github.com/google/googletest.git
-        cd ./googletest
-        cmake -B ./build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}};
-        cd build
-        sudo make install -j8
-        
     - name: Add Dependancy- shaderc
       run: |
          git clone https://github.com/google/shaderc.git;
