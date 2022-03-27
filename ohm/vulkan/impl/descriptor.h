@@ -3,9 +3,9 @@
 #include <string>
 #include <unordered_map>
 #include <vulkan/vulkan.hpp>
-#include "buffer.h"
-#include "image.h"
 #include "ohm/io/shader.h"
+#include "ohm/vulkan/impl/buffer.h"
+#include "ohm/vulkan/impl/image.h"
 namespace ohm {
 namespace ovk {
 constexpr auto MAX_DESCRIPTORS = 4096;
@@ -38,6 +38,7 @@ class Descriptor {
  public:
   Descriptor();
   Descriptor(Descriptor&& desc);
+  Descriptor(DescriptorPool* pool);
   ~Descriptor();
   auto operator=(Descriptor&& desc) -> Descriptor&;
   auto initialize(const DescriptorPool& pool) -> void;

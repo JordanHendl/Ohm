@@ -1,8 +1,12 @@
 #pragma once
 #include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 #include <vulkan/vulkan.hpp>
-#include "device.h"
 #include "ohm/io/shader.h"
+#include "ohm/vulkan/impl/device.h"
 namespace ohm {
 namespace ovk {
 class Device;

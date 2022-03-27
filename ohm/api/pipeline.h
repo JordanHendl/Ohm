@@ -113,7 +113,7 @@ template <typename Allocator>
 Pipeline<API>::Pipeline(const RenderPass<API, Allocator>& rp,
                         const PipelineInfo& info) {
   this->m_rp_handle = rp.handle();
-  this->m_gpu = gpu;
+  this->m_gpu = rp.gpu();
   this->m_info = info;
   this->m_handle = API::Pipeline::create_from_rp(rp.handle(), info);
 }
@@ -154,10 +154,8 @@ auto Pipeline<API>::gpu() const -> int {
 
 template <typename API>
 auto Pipeline<API>::descriptor() const -> Descriptor<API> {
-  auto tmp = Descriptor<API>();
-  tmp.m_handle = API::Pipeline::descriptor(this->m_handle);
-  tmp.m_parent = this;
-  return tmp;
+  auto handle = API::Pipeline::descriptor(this->m_handle);
+  return Descriptor<API>(handle, this);
 }
 
 template <typename API>

@@ -4,13 +4,15 @@
 #define VULKAN_HPP_NO_DEFAULT_DISPATCHER
 #define VULKAN_HPP_NO_EXCEPTIONS
 
-#include "image.h"
+#include "ohm/vulkan/impl/image.h"
 #include <algorithm>
 #include <array>
 #include <iostream>
+#include <utility>
+#include <vector>
 #include <vulkan/vulkan.hpp>
-#include "error.h"
 #include "ohm/api/exception.h"
+#include "ohm/vulkan/impl/error.h"
 
 namespace ohm {
 namespace ovk {

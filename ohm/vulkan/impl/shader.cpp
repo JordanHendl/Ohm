@@ -4,17 +4,17 @@
 #define VULKAN_HPP_NO_DEFAULT_DISPATCHER
 #define VULKAN_HPP_NO_EXCEPTIONS
 
-#include "shader.h"
+#include "ohm/vulkan/impl/shader.h"
 #include <fstream>
 #include <istream>
 #include <map>
 #include <vector>
 #include <vulkan/vulkan.hpp>
-#include "buffer.h"
-#include "device.h"
-#include "error.h"
-#include "image.h"
 #include "ohm/io/shader.h"
+#include "ohm/vulkan/impl/buffer.h"
+#include "ohm/vulkan/impl/device.h"
+#include "ohm/vulkan/impl/error.h"
+#include "ohm/vulkan/impl/image.h"
 
 namespace ohm {
 namespace ovk {

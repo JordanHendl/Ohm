@@ -8,7 +8,6 @@
 #include <vulkan/vulkan.hpp>
 #include "ohm/api/memory.h"
 #include "ohm/vulkan/vulkan_impl.h"
-
 namespace ohm {
 namespace io {
 class Dlloader;

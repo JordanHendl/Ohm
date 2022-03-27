@@ -1,9 +1,9 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
-#include "command_buffer.h"
-#include "device.h"
-#include "memory.h"
 #include "ohm/api/image.h"
+#include "ohm/vulkan/impl/command_buffer.h"
+#include "ohm/vulkan/impl/device.h"
+#include "ohm/vulkan/impl/memory.h"
 
 namespace ohm {
 namespace ovk {

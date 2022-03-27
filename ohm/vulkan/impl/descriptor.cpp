@@ -4,10 +4,10 @@
 #define VULKAN_HPP_NO_DEFAULT_DISPATCHER
 #define VULKAN_HPP_NO_EXCEPTIONS
 
-#include "descriptor.h"
+#include "ohm/vulkan/impl/descriptor.h"
 #include <iostream>
-#include "error.h"
-#include "pipeline.h"
+#include "ohm/vulkan/impl/error.h"
+#include "ohm/vulkan/impl/pipeline.h"
 
 namespace ohm {
 namespace ovk {
@@ -99,6 +99,8 @@ Descriptor::Descriptor() {
 
 Descriptor::Descriptor(Descriptor&& mv) { *this = std::move(mv); }
 
+Descriptor::Descriptor(DescriptorPool* pool) { this->initialize(*pool); }
+
 Descriptor::~Descriptor() {}
 
 auto Descriptor::operator=(Descriptor&& mv) -> Descriptor& {
@@ -178,6 +180,8 @@ auto Descriptor::bind(std::string_view name, const Image& image) -> void {
       auto device = this->m_device->device();
       auto& dispatch = this->m_device->dispatch();
       device.updateDescriptorSets(1, &write, 0, nullptr, dispatch);
+    } else {
+      OhmAssert(true, "Attempting to bind something that doesn't exist.");
     }
   }
 }
@@ -210,14 +214,12 @@ auto Descriptor::bind(std::string_view name, const Image** images,
       auto device = this->m_device->device();
       auto& dispatch = this->m_device->dispatch();
       device.updateDescriptorSets(1, &write, 0, nullptr, dispatch);
+    } else {
+      OhmAssert(true, "Attempting to bind something that doesn't exist.");
     }
   }
 }
 
-auto DescriptorPool::make() -> Descriptor {
-  Descriptor descriptor;
-  descriptor.initialize(*this);
-  return descriptor;
-}
+auto DescriptorPool::make() -> Descriptor { return Descriptor(this); }
 }  // namespace ovk
 }  // namespace ohm

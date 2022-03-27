@@ -83,7 +83,7 @@ struct Vulkan {
     static auto destroy(int32_t handle) Ohm_NOEXCEPT -> void;
   };
 
-  /** Commands-related function API
+  /** Pipeline-related function API
    */
   struct Pipeline {
     static auto create(int gpu, const PipelineInfo& info) Ohm_NOEXCEPT
@@ -93,6 +93,18 @@ struct Vulkan {
         -> int32_t;
     static auto destroy(int32_t handle) Ohm_NOEXCEPT -> void;
     static auto descriptor(int32_t handle) Ohm_NOEXCEPT -> int32_t;
+  };
+
+  /** Descriptor-related function API
+   */
+  struct Descriptor {
+    static auto destroy(int32_t handle) -> void;
+    static auto bind_array(int32_t handle, std::string_view name, int32_t array)
+        -> void;
+    static auto bind_image(int32_t handle, std::string_view name, int32_t image)
+        -> void;
+    static auto bind_images(int32_t handle, std::string_view name,
+                            const std::vector<int32_t>& images) -> void;
   };
 };
 }  // namespace v1

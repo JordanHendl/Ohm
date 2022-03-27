@@ -4,14 +4,11 @@
 #define VULKAN_HPP_NO_DEFAULT_DISPATCHER
 #define VULKAN_HPP_NO_EXCEPTIONS
 
-#include "vulkan_impl.h"
+#include "ohm/vulkan/vulkan_impl.h"
 #include "ohm/api/exception.h"
-
-#include "impl/memory.h"
-#include "impl/system.h"
-
 #include "ohm/api/memory.h"
 #include "ohm/api/system.h"
+#include "ohm/vulkan/impl/system.h"
 
 #ifdef __linux__
 #include <stdlib.h>
@@ -439,7 +436,73 @@ auto Vulkan::Pipeline::destroy(int32_t handle) Ohm_NOEXCEPT -> void {
 }
 
 auto Vulkan::Pipeline::descriptor(int32_t handle) Ohm_NOEXCEPT -> int32_t {
+  auto& pipeline = ovk::system().pipeline[handle];
+  auto index = 0;
+  for (auto& val : ovk::system().descriptor) {
+    if (!val.initialized()) {
+      val = std::move(pipeline.descriptor());
+      return index;
+    }
+    index++;
+  }
+
+  OhmAssert(true, "Too many descriptors. API has run out of allocation space.");
   return -1;
+}
+
+auto Vulkan::Descriptor::destroy(int32_t handle) -> void {
+  OhmAssert(handle < 0, "Attempting to delete an invalid descriptor handle.");
+  auto& val = ovk::system().descriptor[handle];
+  auto tmp = ovk::Descriptor();
+
+  OhmAssert(
+      !val.initialized(),
+      "Attempting to destroy a descriptor object that is not initialized.");
+  tmp = std::move(val);
+}
+
+auto Vulkan::Descriptor::bind_array(int32_t handle, std::string_view name,
+                                    int32_t array) -> void {
+  OhmAssert(handle < 0, "Attempting to delete an invalid descriptor handle.");
+  auto& val = ovk::system().descriptor[handle];
+  auto& arr = ovk::system().buffer[array];
+  OhmAssert(!val.initialized(),
+            "Attempting to use a descriptor object that is not initialized.");
+  OhmAssert(!arr.initialized(),
+            "Attempting to use an array object that is not initialized.");
+
+  val.bind(name, arr);
+}
+
+auto Vulkan::Descriptor::bind_image(int32_t handle, std::string_view name,
+                                    int32_t image) -> void {
+  OhmAssert(handle < 0, "Attempting to delete an invalid descriptor handle.");
+  auto& val = ovk::system().descriptor[handle];
+  auto& img = ovk::system().image[image];
+  OhmAssert(!val.initialized(),
+            "Attempting to use a descriptor object that is not initialized.");
+  OhmAssert(!img.initialized(),
+            "Attempting to use an image object that is not initialized.");
+
+  val.bind(name, img);
+}
+
+auto Vulkan::Descriptor::bind_images(int32_t handle, std::string_view name,
+                                     const std::vector<int32_t>& images)
+    -> void {
+  auto images_to_bind = std::vector<const ovk::Image*>();
+  images_to_bind.reserve(images.size());
+
+  OhmAssert(handle < 0, "Attempting to delete an invalid descriptor handle.");
+  auto& val = ovk::system().descriptor[handle];
+
+  for (auto& image : images) {
+    auto& img = ovk::system().image[image];
+    OhmAssert(!img.initialized(), "Attempting to bind an invalid image.");
+    images_to_bind.push_back(&img);
+  }
+
+  val.bind(name, images_to_bind.data(), images.size());
 }
 }  // namespace v1
 }  // namespace ohm

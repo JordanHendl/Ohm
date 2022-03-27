@@ -273,6 +273,23 @@ auto test_creation() -> bool {
   return pipeline.handle() >= 0;
 }
 }  // namespace pipeline
+namespace descriptor {
+auto test_creation() -> bool {
+  auto pipeline =
+      Pipeline<API>(0, {{{"test_shader.comp.glsl", test_compute_shader}}});
+  auto descriptor = pipeline.descriptor();
+  return descriptor.handle() >= 0;
+}
+
+auto test_binding() -> bool {
+  auto pipeline =
+      Pipeline<API>(0, {{{"test_shader.comp.glsl", test_compute_shader}}});
+  auto image = Image<API>(0, {});
+  auto descriptor = pipeline.descriptor();
+  descriptor.bind("input_tex", image);
+  return descriptor.handle() >= 0;
+}
+}  // namespace descriptor
 }  // namespace ohm
 
 TEST(Vulkan, System) {
@@ -302,6 +319,9 @@ TEST(Vulkan, Image) {
   EXPECT_TRUE(ohm::image::test_memory_allocation());
 }
 
+TEST(Vulkan, Pipeline) { EXPECT_TRUE(ohm::pipeline::test_creation()); }
+
+TEST(Vulkan, Descriptor) {}
 TEST(Vulkan, Commands) {
   EXPECT_TRUE(ohm::commands::test_creation());
   EXPECT_TRUE(ohm::commands::test_host_to_array_copy());
@@ -309,8 +329,6 @@ TEST(Vulkan, Commands) {
   EXPECT_TRUE(ohm::commands::test_array_to_image_copy());
   EXPECT_TRUE(ohm::commands::test_image_copy());
 }
-
-TEST(Vulkan, Pipeline) { EXPECT_TRUE(ohm::pipeline::test_creation()); }
 
 auto main(int argc, char* argv[]) -> int {
   ohm::System<ohm::API>::setDebugParameter("VK_LAYER_KHRONOS_validation");

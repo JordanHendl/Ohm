@@ -4,14 +4,15 @@
 #include "ohm/api/system.h"
 
 #include <vulkan/vulkan.hpp>
-#include "buffer.h"
-#include "command_buffer.h"
-#include "device.h"
-#include "image.h"
-#include "instance.h"
-#include "memory.h"
 #include "ohm/io/dlloader.h"
-#include "pipeline.h"
+#include "ohm/vulkan/impl/buffer.h"
+#include "ohm/vulkan/impl/command_buffer.h"
+#include "ohm/vulkan/impl/descriptor.h"
+#include "ohm/vulkan/impl/device.h"
+#include "ohm/vulkan/impl/image.h"
+#include "ohm/vulkan/impl/instance.h"
+#include "ohm/vulkan/impl/memory.h"
+#include "ohm/vulkan/impl/pipeline.h"
 
 namespace ohm {
 namespace ovk {
@@ -31,6 +32,7 @@ struct System {
   std::array<Image, NUM_CACHE> image;
   std::array<CommandBuffer, NUM_CACHE> commands;
   std::array<Pipeline, NUM_CACHE> pipeline;
+  std::array<Descriptor, NUM_CACHE> descriptor;
   vk::AllocationCallbacks* allocate_cb;
 
   auto shutdown() -> void {

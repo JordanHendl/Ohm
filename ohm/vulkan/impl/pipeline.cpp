@@ -4,14 +4,14 @@
 #define VULKAN_HPP_NO_DEFAULT_DISPATCHER
 #define VULKAN_HPP_NO_EXCEPTIONS
 
-#include "pipeline.h"
+#include "ohm/vulkan/impl/pipeline.h"
 #include <stdio.h>
 #include <vulkan/vulkan.hpp>
-#include "device.h"
-#include "error.h"
 #include "ohm/api/pipeline.h"
-#include "render_pass.h"
-#include "shader.h"
+#include "ohm/vulkan/impl/device.h"
+#include "ohm/vulkan/impl/error.h"
+#include "ohm/vulkan/impl/render_pass.h"
+#include "ohm/vulkan/impl/shader.h"
 
 namespace ohm {
 namespace ovk {

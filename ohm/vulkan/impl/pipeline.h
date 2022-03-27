@@ -1,7 +1,9 @@
 #pragma once
-#include "descriptor.h"
+#include <memory>
+#include <vector>
 #include "ohm/api/pipeline.h"
-#include "shader.h"
+#include "ohm/vulkan/impl/descriptor.h"
+#include "ohm/vulkan/impl/shader.h"
 namespace ohm {
 namespace ovk {
 class Buffer;

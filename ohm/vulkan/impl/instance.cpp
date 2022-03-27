@@ -4,7 +4,7 @@
 #define VULKAN_HPP_NO_DEFAULT_DISPATCHER
 #define VULKAN_HPP_NO_EXCEPTIONS
 
-#include "instance.h"
+#include "ohm/vulkan/impl/instance.h"
 #include <SDL.h>
 #include <SDL_vulkan.h>
 #include <array>
@@ -12,9 +12,9 @@
 #include <string>
 #include <vector>
 #include <vulkan/vulkan.hpp>
-#include "error.h"
 #include "ohm/api/exception.h"
 #include "ohm/io/dlloader.h"
+#include "ohm/vulkan/impl/error.h"
 
 namespace ohm {
 namespace ovk {

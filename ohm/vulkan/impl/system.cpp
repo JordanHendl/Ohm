@@ -4,7 +4,7 @@
 #define VULKAN_HPP_NO_DEFAULT_DISPATCHER
 #define VULKAN_HPP_NO_EXCEPTIONS
 
-#include "system.h"
+#include "ohm/vulkan/impl/system.h"
 
 namespace ohm {
 namespace ovk {

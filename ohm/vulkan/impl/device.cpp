@@ -4,13 +4,13 @@
 #define VULKAN_HPP_NO_DEFAULT_DISPATCHER
 #define VULKAN_HPP_NO_EXCEPTIONS
 
-#include "device.h"
+#include "ohm/vulkan/impl/device.h"
 #include <memory>
-#include "error.h"
-#include "instance.h"
 #include "ohm/api/exception.h"
 #include "ohm/io/dlloader.h"
-#include "system.h"
+#include "ohm/vulkan/impl/error.h"
+#include "ohm/vulkan/impl/instance.h"
+#include "ohm/vulkan/impl/system.h"
 
 namespace ohm {
 namespace ovk {
