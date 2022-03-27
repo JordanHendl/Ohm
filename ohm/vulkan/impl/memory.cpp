@@ -17,7 +17,7 @@ namespace ovk {
 constexpr unsigned MIN_ALLOC_SIZE = 256;
 
 auto memType(uint32_t filter, vk::MemoryPropertyFlags flag,
-                 vk::PhysicalDevice device) -> uint32_t {
+             vk::PhysicalDevice device) -> uint32_t {
   vk::PhysicalDeviceMemoryProperties mem_prop;
 
   mem_prop = device.getMemoryProperties(system().instance.dispatch());

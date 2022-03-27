@@ -213,22 +213,70 @@ auto Vulkan::Array::bind(int32_t array_handle,
 
 auto Vulkan::Image::create(int gpu, const ImageInfo& info) Ohm_NOEXCEPT
     -> int32_t {
+  auto& device = ovk::system().devices[gpu];
+  auto index = 0;
+  for (auto& val : ovk::system().image) {
+    if (!val.initialized()) {
+      val = std::move(ovk::Image(device, info));
+      return index;
+    }
+    index++;
+  }
+
+  OhmAssert(true, "Too many images. API has run out of allocation.");
   return -1;
 }
 
-auto Vulkan::Image::destroy(int32_t handle) Ohm_NOEXCEPT -> void {}
+auto Vulkan::Image::destroy(int32_t handle) Ohm_NOEXCEPT -> void {
+  OhmAssert(handle < 0, "Attempting to delete an invalid array handle.");
+  auto& val = ovk::system().image[handle];
+  auto tmp = ovk::Image();
+
+  OhmAssert(!val.initialized(),
+            "Attempting to use array object that is not initialized.");
+  tmp = std::move(val);
+}
 
 auto Vulkan::Image::layer(int32_t handle, size_t layer) Ohm_NOEXCEPT
     -> int32_t {
+  OhmAssert(handle < 0, "Attempting to delete an invalid image handle.");
+  auto& parent = ovk::system().image[handle];
+  auto index = 0;
+  for (auto& val : ovk::system().image) {
+    if (!val.initialized()) {
+      val = std::move(ovk::Image(parent, layer));
+      return index;
+    }
+    index++;
+  }
+
+  OhmAssert(true, "Too many buffers. API has run out of allocation.");
   return -1;
 }
 
 auto Vulkan::Image::required(int32_t handle) Ohm_NOEXCEPT -> size_t {
-  return 1024;
+  OhmAssert(handle < 0, "Attempting to delete an invalid image handle.");
+  auto& val = ovk::system().image[handle];
+  auto tmp = ovk::Image();
+
+  OhmAssert(!val.initialized(),
+            "Attempting to use image object that is not initialized.");
+  return val.size();
 }
 
-auto Vulkan::Image::bind(int32_t image_handle, int32_t mem_handle) Ohm_NOEXCEPT
-    -> void {}
+auto Vulkan::Image::bind(int32_t handle, int32_t mem_handle) Ohm_NOEXCEPT
+    -> void {
+  OhmAssert(handle < 0, "Attempting to delete an invalid array handle.");
+  auto& val = ovk::system().image[handle];
+  auto& mem = ovk::system().memory[mem_handle];
+  auto tmp = ovk::Image();
+
+  OhmAssert(!val.initialized(),
+            "Attempting to use image object that is not initialized.");
+  OhmAssert(!mem.initialized(),
+            "Attempting to use memory object that is not initialized.");
+  val.bind(mem);
+}
 
 auto Vulkan::Commands::create(int gpu, QueueType type) Ohm_NOEXCEPT -> int32_t {
   auto& device = ovk::system().devices[gpu];
@@ -268,6 +316,13 @@ auto Vulkan::Commands::copy_to_image(int32_t handle, int32_t src, int32_t dst,
   OhmAssert(handle < 0, "Attempting to use an invalid commands handle.");
   OhmAssert(src < 0, "Attempting to use an invalid src array handle.");
   OhmAssert(dst < 0, "Attempting to use an invalid dst image handle.");
+
+  auto& cmd = ovk::system().commands[handle];
+
+  auto& r_src = ovk::system().buffer[src];
+  auto& r_dst = ovk::system().image[dst];
+
+  cmd.copy(r_src, r_dst, count);
 }
 
 auto Vulkan::Commands::copy_image(int32_t handle, int32_t src, int32_t dst,
@@ -275,6 +330,7 @@ auto Vulkan::Commands::copy_image(int32_t handle, int32_t src, int32_t dst,
   OhmAssert(handle < 0, "Attempting to use an invalid commands handle.");
   OhmAssert(src < 0, "Attempting to use an invalid src image handle.");
   OhmAssert(dst < 0, "Attempting to use an invalid dst image handle.");
+
   auto& cmd = ovk::system().commands[handle];
 
   auto& r_src = ovk::system().image[src];

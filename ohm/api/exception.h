@@ -34,7 +34,7 @@ namespace ohm {
 #define OhmAssert(cond, description)       \
   if (cond) {                              \
     std::cout << description << std::endl; \
-    assert(cond);                          \
+    assert(!(cond));                       \
   }
 
 #define OhmException(cond, error, description) \

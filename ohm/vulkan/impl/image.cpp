@@ -168,7 +168,7 @@ auto Image::createImage() -> vk::Image {
   return result;
 }
 
-Image::Image() {
+auto Image::setupParams() -> void {
   this->m_layout = vk::ImageLayout::eUndefined;
   this->m_old_layout = vk::ImageLayout::eUndefined;
   this->m_type = vk::ImageType::e2D;
@@ -185,6 +185,19 @@ Image::Image() {
   this->m_subresource.setBaseArrayLayer(0);
   this->m_subresource.setLayerCount(this->layers());
   this->m_subresource.setMipLevel(0);
+}
+
+Image::Image() { this->setupParams(); }
+
+Image::Image(Device& gpu, const ImageInfo& info, vk::ImageLayout start) {
+  this->setupParams();
+  this->initialize(gpu, info, start);
+}
+
+Image::Image(Device& gpu, const ImageInfo& info, vk::Image prealloc,
+             vk::ImageLayout start) {
+  this->setupParams();
+  this->initialize(gpu, info, prealloc, start);
 }
 
 Image::Image(const Image& orig, unsigned layer) {
@@ -256,6 +269,9 @@ auto Image::operator=(Image&& mv) -> Image& {
   this->m_subresource = mv.m_subresource;
   this->m_should_delete = mv.m_should_delete;
   this->m_layer = mv.m_layer;
+  this->m_image = mv.m_image;
+  this->m_view = mv.m_view;
+  this->m_sampler = mv.m_sampler;
 
   mv.m_layout = vk::ImageLayout::eUndefined;
   mv.m_old_layout = vk::ImageLayout::eUndefined;
@@ -273,6 +289,9 @@ auto Image::operator=(Image&& mv) -> Image& {
   mv.m_subresource.setBaseArrayLayer(0);
   mv.m_subresource.setLayerCount(this->layers());
   mv.m_subresource.setMipLevel(0);
+  mv.m_sampler = nullptr;
+  mv.m_view = nullptr;
+  mv.m_image = nullptr;
 
   return *this;
 }
@@ -358,12 +377,12 @@ auto Image::initialize(Device& device, const ImageInfo& info,
 auto Image::bind(Memory& memory) -> void {
   auto device = this->m_device->device();
   auto& dispatch = this->m_device->dispatch();
-  OhmException(
-      !this->initialized(), Error::APIError,
+  OhmAssert(
+      !this->initialized(),
       "Attempting to bind memory to a Image that has not been initialized.");
-  OhmException(memory.size < this->m_requirements.size, Error::APIError,
-               "Attempting to bind memory to texture without enough memory "
-               "allocated.");
+  OhmAssert(memory.size < this->m_requirements.size,
+            "Attempting to bind memory to texture without enough memory "
+            "allocated.");
 
   this->m_memory = &memory;
   error(device.bindImageMemory(this->m_image, memory.memory, memory.offset,
@@ -372,6 +391,7 @@ auto Image::bind(Memory& memory) -> void {
   this->m_sampler = this->createSampler();
 
   auto oneshot = CommandBuffer(*this->m_device, QueueType::Graphics);
+  oneshot.begin();
   oneshot.transition(*this, this->m_start_layout);
   oneshot.submit();
   oneshot.synchronize();

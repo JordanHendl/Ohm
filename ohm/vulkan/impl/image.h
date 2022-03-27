@@ -10,20 +10,26 @@ namespace ovk {
 auto convert(ImageFormat format) -> vk::Format;
 auto convert(vk::Format format) -> ImageFormat;
 
+constexpr auto default_layout = vk::ImageLayout::eGeneral;
 class Image {
  public:
   Image();
+  Image(Device& gpu, const ImageInfo& info,
+        vk::ImageLayout start = default_layout);
+  Image(Device& gpu, const ImageInfo& info, vk::Image prealloc,
+        vk::ImageLayout start = default_layout);
   Image(const Image& orig, unsigned layer);
   Image(Image&& mv);
   ~Image();
   auto operator=(Image&& mv) -> Image&;
   auto initialize(Device& gpu, const ImageInfo& info,
-                  vk::ImageLayout start = vk::ImageLayout::eGeneral) -> size_t;
+                  vk::ImageLayout start = default_layout) -> size_t;
   auto initialize(Device& gpu, const ImageInfo& info, vk::Image prealloc,
-                  vk::ImageLayout start = vk::ImageLayout::eGeneral) -> size_t;
+                  vk::ImageLayout start = default_layout) -> size_t;
+  auto bind(Memory& memory) -> void;
 
+  inline auto device() const -> const Device& { return *this->m_device; }
   inline auto initialized() const -> bool { return this->m_image; }
-  inline auto bind(Memory& memory) -> void;
   inline auto layer() const { return this->m_layer; }
   inline auto memory() -> Memory& { return *this->m_memory; }
   inline auto size() const -> size_t { return this->m_requirements.size; };
@@ -76,6 +82,7 @@ class Image {
   unsigned m_layer;
   bool m_should_delete;
 
+  inline auto setupParams() -> void;
   inline auto createView() -> vk::ImageView;
   inline auto createSampler() -> vk::Sampler;
   inline auto createImage() -> vk::Image;

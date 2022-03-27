@@ -71,6 +71,8 @@ BENCHMARK(bench_cpu_to_gpu_transfer)->RangeMultiplier(4)->Range(1024, 524288);
 
 BENCHMARK(bench_gpu_to_gpu_transfer)->RangeMultiplier(4)->Range(1024, 524288);
 
+BENCHMARK(bench_gpu_to_gpu_transfer_image);
+
 int main(int argc, char** argv) {
   ohm::System<API>::initialize();
 

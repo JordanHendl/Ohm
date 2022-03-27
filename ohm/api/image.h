@@ -87,10 +87,9 @@ Image<API, Allocator>::Image() {
 template <typename API, typename Allocator>
 Image<API, Allocator>::Image(int gpu, ImageInfo info) {
   this->m_handle = API::Image::create(gpu, info);
+  this->m_info = info;
   auto required_size = API::Image::required(this->m_handle);
-
-  this->m_memory = std::make_shared<Memory<API, Allocator>>();
-  *this->m_memory = std::move(Memory<API, Allocator>(gpu, required_size));
+  this->m_memory = std::make_shared<Memory<API, Allocator>>(gpu, required_size);
   API::Image::bind(this->m_handle, m_memory->handle());
 }
 

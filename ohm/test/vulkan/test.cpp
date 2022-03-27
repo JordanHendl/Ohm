@@ -143,8 +143,7 @@ auto test_getters() -> bool {
   auto image = Image<API>(0, info);
 
   auto pass = image.gpu() == 0 && image.format() == info.format &&
-              image.format() == info.format && image.width() == info.width &&
-              image.height() == info.height;
+              image.width() == info.width && image.height() == info.height;
 
   return pass;
 }
@@ -238,6 +237,27 @@ auto test_gpu_array_copy() -> bool {
 
   return true;
 }
+auto test_array_to_image_copy() -> bool {
+  auto array = Array<API, unsigned char>(0, 1280 * 1024 * 4);
+  auto image = Image<API>(0, {1280, 1024});
+  auto commands = Commands<API>(0);
+  commands.begin();
+  commands.copy(array, image);
+  commands.submit();
+  commands.synchronize();
+  return true;
+}
+
+auto test_image_copy() -> bool {
+  auto image_1 = Image<API>(0, {1280, 1024});
+  auto image_2 = Image<API>(0, {1280, 1024});
+  auto commands = Commands<API>(0);
+  commands.begin();
+  commands.copy(image_1, image_2);
+  commands.submit();
+  commands.synchronize();
+  return true;
+}
 }  // namespace commands
 namespace render_pass {
 auto test_creation() -> bool {
@@ -276,10 +296,18 @@ TEST(Vulkan, Array) {
   EXPECT_TRUE(ohm::array::test_mapped_allocation());
 }
 
+TEST(Vulkan, Image) {
+  EXPECT_TRUE(ohm::image::test_creation());
+  EXPECT_TRUE(ohm::image::test_getters());
+  EXPECT_TRUE(ohm::image::test_memory_allocation());
+}
+
 TEST(Vulkan, Commands) {
   EXPECT_TRUE(ohm::commands::test_creation());
   EXPECT_TRUE(ohm::commands::test_host_to_array_copy());
   EXPECT_TRUE(ohm::commands::test_gpu_array_copy());
+  EXPECT_TRUE(ohm::commands::test_array_to_image_copy());
+  EXPECT_TRUE(ohm::commands::test_image_copy());
 }
 
 TEST(Vulkan, Pipeline) { EXPECT_TRUE(ohm::pipeline::test_creation()); }

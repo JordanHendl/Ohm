@@ -431,8 +431,8 @@ auto CommandBuffer::copy(Image& src, Image& dst, size_t) -> void {
   extent.setDepth(dst.layers());
 
   region.setExtent(extent);
-  region.setSrcOffset(src.offset());
-  region.setDstOffset(dst.offset());
+  region.setSrcOffset(0);
+  region.setDstOffset(0);
   region.setSrcSubresource(src.subresource());
   region.setDstSubresource(dst.subresource());
 
