@@ -222,8 +222,7 @@ auto test_gpu_array_copy() -> bool {
   commands.copy(array_host, host_array.data());
 
   for (auto& num : host_array) {
-    if (num != 1337)
-      return false;
+    if (num != 1337) return false;
   }
 
   commands.begin();
@@ -234,8 +233,7 @@ auto test_gpu_array_copy() -> bool {
   commands.copy(array_host, host_array.data());
 
   for (auto& num : host_array) {
-    if (num != 0)
-      return false;
+    if (num != 0) return false;
   }
 
   return true;

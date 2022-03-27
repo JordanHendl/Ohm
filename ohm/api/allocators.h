@@ -100,8 +100,8 @@ inline auto operator&(const HeapType& a, const HeapType& b) -> bool {
 
 template <typename API>
 auto RawAllocator<API>::chooseHeap(int gpu,
-                                       const std::vector<GpuMemoryHeap>& heap,
-                                       HeapType requested, size_t size) -> int {
+                                   const std::vector<GpuMemoryHeap>& heap,
+                                   HeapType requested, size_t size) -> int {
   auto index = 0;
   for (auto& heap : heap) {
     auto type_match = heap.type & requested;
@@ -117,7 +117,7 @@ auto RawAllocator<API>::chooseHeap(int gpu,
 
 template <typename API>
 auto RawAllocator<API>::allocate(int gpu, HeapType type, int heap_index,
-                                     size_t size) -> int32_t {
+                                 size_t size) -> int32_t {
   return API::Memory::allocate(gpu, type, heap_index, size);
 }
 
@@ -229,6 +229,6 @@ auto PoolAllocator<API>::destroy(int32_t handle) -> void {
   }
 }
 
-template<typename API>
+template <typename API>
 using DefaultAllocator = PoolAllocator<API>;
 }  // namespace ohm

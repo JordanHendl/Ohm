@@ -52,6 +52,19 @@ auto bench_gpu_to_gpu_transfer(benchmark::State& state) {
   }
 }
 
+auto bench_gpu_to_gpu_transfer_image(benchmark::State& state) {
+  auto info = ohm::ImageInfo(1280, 1024, ohm::ImageFormat::RGBA8);
+  auto image_1 = ohm::Image<API>(0, info);
+  auto image_2 = ohm::Image<API>(0, info);
+  auto cmds = ohm::Commands<API>(0);
+
+  while (state.KeepRunning()) {
+    cmds.copy(image_1, image_2);
+    cmds.submit();
+    cmds.synchronize();
+  }
+}
+
 BENCHMARK(bench_cpu_to_cpu_transfer)->RangeMultiplier(4)->Range(1024, 524288);
 
 BENCHMARK(bench_cpu_to_gpu_transfer)->RangeMultiplier(4)->Range(1024, 524288);

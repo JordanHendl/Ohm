@@ -35,7 +35,7 @@ DescriptorPool::DescriptorPool() {
 }
 
 DescriptorPool::~DescriptorPool() {
-  if(this->m_pool) {
+  if (this->m_pool) {
     auto device = this->m_device->device();
     auto* alloc_cb = this->m_device->allocationCB();
     auto& dispatch = this->m_device->dispatch();

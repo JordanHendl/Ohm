@@ -1,5 +1,6 @@
 #pragma once
 #include "array.h"
+#include "image.h"
 namespace ohm {
 
 template <typename API>
@@ -33,6 +34,14 @@ class Commands {
 
   template <typename Type1, typename Type2>
   auto blit(const Type1& src, Type2& dst, Filter filter) -> void;
+
+  template <typename Type, typename Allocator>
+  auto copy(const Array<API, Type, Allocator>& src, Image<API, Allocator>& dst,
+            size_t count = 0) -> void;
+
+  template <typename Allocator>
+  auto copy(const Image<API, Allocator>& src, Image<API, Allocator>& dst,
+            size_t count = 0) -> void;
 
   template <typename Type, typename Allocator>
   auto copy(const Array<API, Type, Allocator>& src,
@@ -120,20 +129,38 @@ auto Commands<API, Queue>::blit(const Type1& src, Type2& dst, Filter filter)
     -> void {
   API::Commands::blit(this->m_handle, src, dst, filter);
 }
+
+template <typename API, QueueType Queue>
+template <typename Type, typename Allocator>
+auto Commands<API, Queue>::copy(const Array<API, Type, Allocator>& src,
+                                Image<API, Allocator>& dst, size_t count)
+    -> void {
+  API::Commands::copy_to_image(this->m_handle, src.handle(), dst.handle(),
+                               count);
+}
+
+template <typename API, QueueType Queue>
+template <typename Allocator>
+auto Commands<API, Queue>::copy(const Image<API, Allocator>& src,
+                                Image<API, Allocator>& dst, size_t count)
+    -> void {
+  API::Commands::copy_image(this->m_handle, src.handle(), dst.handle(), count);
+}
+
 template <typename API, QueueType Queue>
 template <typename Type, typename Allocator>
 auto Commands<API, Queue>::copy(const Array<API, Type, Allocator>& src,
                                 Array<API, Type, Allocator>& dst, size_t count)
     -> void {
-  API::Commands::copyArray(this->m_handle, src.handle(), dst.handle(), count);
+  API::Commands::copy_array(this->m_handle, src.handle(), dst.handle(), count);
 }
 
 template <typename API, QueueType Queue>
 template <typename Type, typename Allocator>
 auto Commands<API, Queue>::copy(const Array<API, Type, Allocator>& src,
                                 Type* dst, size_t count) -> void {
-  API::Commands::copyArray(this->m_handle, src.handle(),
-                           static_cast<void*>(dst), count);
+  API::Commands::copy_array(this->m_handle, src.handle(),
+                            static_cast<void*>(dst), count);
 }
 
 template <typename API, QueueType Queue>
@@ -141,8 +168,8 @@ template <typename Type, typename Allocator>
 auto Commands<API, Queue>::copy(const Type* src,
                                 Array<API, Type, Allocator>& dst, size_t count)
     -> void {
-  API::Commands::copyArray(this->m_handle, static_cast<const void*>(src),
-                           dst.handle(), count);
+  API::Commands::copy_array(this->m_handle, static_cast<const void*>(src),
+                            dst.handle(), count);
 }
 
 template <typename API, QueueType Queue>

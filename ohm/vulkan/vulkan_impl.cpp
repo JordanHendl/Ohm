@@ -101,7 +101,7 @@ auto Vulkan::Memory::allocate(int gpu, HeapType requested, size_t heap_index,
         if (requested & HeapType::HostVisible)
           vk_type = vk_type | vk::MemoryPropertyFlagBits::eHostVisible |
                     vk::MemoryPropertyFlagBits::eHostCoherent;
-        else 
+        else
           vk_type = vk_type | vk::MemoryPropertyFlagBits::eDeviceLocal;
 
         if (type.heapIndex == heap_index && (type.propertyFlags & vk_type)) {
@@ -109,48 +109,48 @@ auto Vulkan::Memory::allocate(int gpu, HeapType requested, size_t heap_index,
           return index;
         }
       }
-      OhmException(true, Error::APIError,
-                   "Tried allocating to a heap that doesn't match requested "
-                   "allocation type.");
+      OhmAssert(true,
+                "Tried allocating to a heap that doesn't match requested "
+                "allocation type.");
     }
     index++;
   }
 
-  OhmException(true, Error::APIError, "Too many memory allocations.");
+  OhmAssert(true, "Too many memory allocations.");
   return 0;
 }
 
 auto Vulkan::Memory::type(int32_t handle) Ohm_NOEXCEPT -> HeapType {
-  OhmException(handle < 0, Error::APIError, "Invalid handle passed to API.");
+  OhmAssert(handle < 0, "Invalid handle passed to API.");
   auto& mem = ovk::system().memory[handle];
-  OhmException(!mem.initialized(), Error::APIError,
-               "Attempting to use memory object that is not initialized.");
+  OhmAssert(!mem.initialized(),
+            "Attempting to use memory object that is not initialized.");
   return mem.type;
 }
 
 auto Vulkan::Memory::destroy(int32_t handle) Ohm_NOEXCEPT -> void {
-  OhmException(handle < 0, Error::APIError, "Invalid handle passed to API.");
+  OhmAssert(handle < 0, "Invalid handle passed to API.");
   auto& mem = ovk::system().memory[handle];
   auto tmp = ovk::Memory();
-  OhmException(!mem.initialized(), Error::APIError,
-               "Attempting to use memory object that is not initialized.");
+  OhmAssert(!mem.initialized(),
+            "Attempting to use memory object that is not initialized.");
   tmp = std::move(mem);
 }
 
 auto Vulkan::Memory::size(int32_t handle) Ohm_NOEXCEPT -> size_t {
-  OhmException(handle < 0, Error::APIError, "Invalid handle passed to API.");
+  OhmAssert(handle < 0, "Invalid handle passed to API.");
   auto& mem = ovk::system().memory[handle];
-  OhmException(!mem.initialized(), Error::APIError,
-               "Attempting to use memory object that is not initialized.");
+  OhmAssert(!mem.initialized(),
+            "Attempting to use memory object that is not initialized.");
   return mem.size - mem.offset;
 }
 
 auto Vulkan::Memory::offset(int32_t handle, size_t offset) Ohm_NOEXCEPT
     -> size_t {
-  OhmException(handle < 0, Error::APIError, "Invalid handle passed to API.");
+  OhmAssert(handle < 0, "Invalid handle passed to API.");
   auto& parent = ovk::system().memory[handle];
-  OhmException(!parent.initialized(), Error::APIError,
-               "Attempting to use memory object that is not initialized.");
+  OhmAssert(!parent.initialized(),
+            "Attempting to use memory object that is not initialized.");
   auto index = 0;
   for (auto& mem : ovk::system().memory) {
     if (!mem.initialized()) {
@@ -160,7 +160,7 @@ auto Vulkan::Memory::offset(int32_t handle, size_t offset) Ohm_NOEXCEPT
     index++;
   }
 
-  OhmException(true, Error::APIError, "Too many memory allocations.");
+  OhmAssert(true, "Too many memory allocations.");
   return 0;
 }
 
@@ -176,43 +176,38 @@ auto Vulkan::Array::create(int gpu, size_t num_elmts,
     index++;
   }
 
-  OhmException(true, Error::APIError,
-               "Too many buffers. API has run out of allocation.");
+  OhmAssert(true, "Too many buffers. API has run out of allocation.");
   return -1;
 }
 
 auto Vulkan::Array::destroy(int32_t handle) Ohm_NOEXCEPT -> void {
-  OhmException(handle < 0, Error::APIError,
-               "Attempting to delete an invalid array handle.");
+  OhmAssert(handle < 0, "Attempting to delete an invalid array handle.");
   auto& buf = ovk::system().buffer[handle];
   auto tmp = ovk::Buffer();
 
-  OhmException(!buf.initialized(), Error::APIError,
-               "Attempting to use array object that is not initialized.");
+  OhmAssert(!buf.initialized(),
+            "Attempting to use array object that is not initialized.");
   tmp = std::move(buf);
 }
 
 auto Vulkan::Array::required(int32_t handle) Ohm_NOEXCEPT -> size_t {
-  OhmException(handle < 0, Error::APIError,
-               "Attempting to query an invalid array handle.");
+  OhmAssert(handle < 0, "Attempting to query an invalid array handle.");
   auto& buf = ovk::system().buffer[handle];
 
-  OhmException(!buf.initialized(), Error::APIError,
-               "Attempting to use array object that is not initialized.");
+  OhmAssert(!buf.initialized(),
+            "Attempting to use array object that is not initialized.");
   return buf.size();
 }
 
 auto Vulkan::Array::bind(int32_t array_handle,
                          int32_t memory_handle) Ohm_NOEXCEPT -> void {
-  OhmException(array_handle < 0, Error::APIError,
-               "Attempting to bind to an invalid array handle.");
-  OhmException(memory_handle < 0, Error::APIError,
-               "Attempting to bind an invalid memory handle.");
+  OhmAssert(array_handle < 0, "Attempting to bind to an invalid array handle.");
+  OhmAssert(memory_handle < 0, "Attempting to bind an invalid memory handle.");
   auto& buf = ovk::system().buffer[array_handle];
   auto& mem = ovk::system().memory[memory_handle];
 
-  OhmException(!buf.initialized(), Error::APIError,
-               "Attempting to use array object that is not initialized.");
+  OhmAssert(!buf.initialized(),
+            "Attempting to use array object that is not initialized.");
   buf.bind(mem);
 }
 
@@ -246,100 +241,104 @@ auto Vulkan::Commands::create(int gpu, QueueType type) Ohm_NOEXCEPT -> int32_t {
     index++;
   }
 
-  OhmException(true, Error::APIError,
-               "Too many commands. API has run out of allocation.");
+  OhmAssert(true, "Too many commands. API has run out of allocation.");
   return -1;
 }
 
 auto Vulkan::Commands::destroy(int32_t handle) Ohm_NOEXCEPT -> void {
-  OhmException(handle < 0, Error::APIError,
-               "Attempting to destroy an invalid commands handle.");
+  OhmAssert(handle < 0, "Attempting to destroy an invalid commands handle.");
   auto& cmd = ovk::system().commands[handle];
-  OhmException(!cmd.initialized(), Error::APIError,
-               "Attempting to use object that is not initialized.");
+  OhmAssert(!cmd.initialized(),
+            "Attempting to use object that is not initialized.");
   auto tmp = ovk::CommandBuffer();
   tmp = std::move(cmd);
 }
 
 auto Vulkan::Commands::begin(int32_t handle) Ohm_NOEXCEPT -> void {
-  OhmException(handle < 0, Error::APIError,
-               "Attempting to destroy an invalid commands handle.");
+  OhmAssert(handle < 0, "Attempting to destroy an invalid commands handle.");
   auto& cmd = ovk::system().commands[handle];
 
-  OhmException(!cmd.initialized(), Error::APIError,
-               "Attempting to use object that is not initialized.");
+  OhmAssert(!cmd.initialized(),
+            "Attempting to use object that is not initialized.");
   cmd.begin();
 }
 
-auto Vulkan::Commands::copyArray(int32_t handle, int32_t src, int32_t dst,
-                                 size_t count) Ohm_NOEXCEPT -> void {
-  OhmException(handle < 0, Error::APIError,
-               "Attempting to use an invalid commands handle.");
-  OhmException(src < 0, Error::APIError,
-               "Attempting to use an invalid src array handle.");
-  OhmException(dst < 0, Error::APIError,
-               "Attempting to use an invalid dst array handle.");
+auto Vulkan::Commands::copy_to_image(int32_t handle, int32_t src, int32_t dst,
+                                     size_t count) Ohm_NOEXCEPT -> void {
+  OhmAssert(handle < 0, "Attempting to use an invalid commands handle.");
+  OhmAssert(src < 0, "Attempting to use an invalid src array handle.");
+  OhmAssert(dst < 0, "Attempting to use an invalid dst image handle.");
+}
+
+auto Vulkan::Commands::copy_image(int32_t handle, int32_t src, int32_t dst,
+                                  size_t count) Ohm_NOEXCEPT -> void {
+  OhmAssert(handle < 0, "Attempting to use an invalid commands handle.");
+  OhmAssert(src < 0, "Attempting to use an invalid src image handle.");
+  OhmAssert(dst < 0, "Attempting to use an invalid dst image handle.");
+  auto& cmd = ovk::system().commands[handle];
+
+  auto& r_src = ovk::system().image[src];
+  auto& r_dst = ovk::system().image[dst];
+
+  cmd.copy(r_src, r_dst, count);
+}
+
+auto Vulkan::Commands::copy_array(int32_t handle, int32_t src, int32_t dst,
+                                  size_t count) Ohm_NOEXCEPT -> void {
+  OhmAssert(handle < 0, "Attempting to use an invalid commands handle.");
+  OhmAssert(src < 0, "Attempting to use an invalid src array handle.");
+  OhmAssert(dst < 0, "Attempting to use an invalid dst array handle.");
   auto& cmd = ovk::system().commands[handle];
 
   auto& src_buf = ovk::system().buffer[src];
   auto& dst_buf = ovk::system().buffer[dst];
 
-  OhmException(!cmd.initialized(), Error::APIError,
-               "Attempting to use object that is not initialized.");
   cmd.copy(src_buf, dst_buf, count);
 }
 
-auto Vulkan::Commands::copyArray(int32_t handle, int32_t src, void* dst,
-                                 size_t count) Ohm_NOEXCEPT -> void {
-  OhmException(handle < 0, Error::APIError,
-               "Attempting to use an invalid commands handle.");
-  OhmException(src < 0, Error::APIError,
-               "Attempting to use an invalid src array handle.");
-  OhmException(dst == nullptr, Error::APIError,
-               "Attempting to use an invalid dst ptr.");
+auto Vulkan::Commands::copy_array(int32_t handle, int32_t src, void* dst,
+                                  size_t count) Ohm_NOEXCEPT -> void {
+  OhmAssert(handle < 0, "Attempting to use an invalid commands handle.");
+  OhmAssert(src < 0, "Attempting to use an invalid src array handle.");
+  OhmAssert(dst == nullptr, "Attempting to use an invalid dst ptr.");
 
   auto& cmd = ovk::system().commands[handle];
   auto& src_buf = ovk::system().buffer[src];
 
-  OhmException(!cmd.initialized(), Error::APIError,
-               "Attempting to use object that is not initialized.");
+  OhmAssert(!cmd.initialized(),
+            "Attempting to use object that is not initialized.");
   cmd.copy(src_buf, static_cast<unsigned char*>(dst), count);
 }
 
-auto Vulkan::Commands::copyArray(int32_t handle, const void* src, int32_t dst,
-                                 size_t count) Ohm_NOEXCEPT -> void {
-  OhmException(handle < 0, Error::APIError,
-               "Attempting to use an invalid commands handle.");
-  OhmException(src == nullptr, Error::APIError,
-               "Attempting to use an invalid src pointer.");
-  OhmException(dst < 0, Error::APIError,
-               "Attempting to use an invalid dst array handle.");
+auto Vulkan::Commands::copy_array(int32_t handle, const void* src, int32_t dst,
+                                  size_t count) Ohm_NOEXCEPT -> void {
+  OhmAssert(handle < 0, "Attempting to use an invalid commands handle.");
+  OhmAssert(src == nullptr, "Attempting to use an invalid src pointer.");
+  OhmAssert(dst < 0, "Attempting to use an invalid dst array handle.");
 
   auto& cmd = ovk::system().commands[handle];
   auto& dst_buf = ovk::system().buffer[dst];
 
-  OhmException(!cmd.initialized(), Error::APIError,
-               "Attempting to use object that is not initialized.");
+  OhmAssert(!cmd.initialized(),
+            "Attempting to use object that is not initialized.");
   cmd.copy(static_cast<const unsigned char*>(src), dst_buf, count);
 }
 
 auto Vulkan::Commands::submit(int32_t handle) Ohm_NOEXCEPT -> void {
-  OhmException(handle < 0, Error::APIError,
-               "Attempting to use an invalid commands handle.");
+  OhmAssert(handle < 0, "Attempting to use an invalid commands handle.");
   auto& cmd = ovk::system().commands[handle];
 
-  OhmException(!cmd.initialized(), Error::APIError,
-               "Attempting to use object that is not initialized.");
+  OhmAssert(!cmd.initialized(),
+            "Attempting to use object that is not initialized.");
   cmd.submit();
 }
 
 auto Vulkan::Commands::synchronize(int32_t handle) Ohm_NOEXCEPT -> void {
-  OhmException(handle < 0, Error::APIError,
-               "Attempting to use an invalid commands handle.");
+  OhmAssert(handle < 0, "Attempting to use an invalid commands handle.");
   auto& cmd = ovk::system().commands[handle];
 
-  OhmException(!cmd.initialized(), Error::APIError,
-               "Attempting to use object that is not initialized.");
+  OhmAssert(!cmd.initialized(),
+            "Attempting to use object that is not initialized.");
   cmd.synchronize();
 }
 
@@ -363,8 +362,7 @@ auto Vulkan::Pipeline::create(int gpu, const PipelineInfo& info) Ohm_NOEXCEPT
     index++;
   }
 
-  OhmException(true, Error::APIError,
-               "Too many pipelines. API has run out of allocation space.");
+  OhmAssert(true, "Too many pipelines. API has run out of allocation space.");
   return -1;
 }
 
@@ -375,14 +373,12 @@ auto Vulkan::Pipeline::create_from_rp(int32_t rp_handle,
 }
 
 auto Vulkan::Pipeline::destroy(int32_t handle) Ohm_NOEXCEPT -> void {
-  OhmException(handle < 0, Error::APIError,
-               "Attempting to delete an invalid pipeline handle.");
+  OhmAssert(handle < 0, "Attempting to delete an invalid pipeline handle.");
   auto& pipe = ovk::system().pipeline[handle];
   auto tmp = ovk::Pipeline();
 
-  OhmException(
-      !pipe.initialized(), Error::APIError,
-      "Attempting to destroy a pipeline object that is not initialized.");
+  OhmAssert(!pipe.initialized(),
+            "Attempting to destroy a pipeline object that is not initialized.");
   tmp = std::move(pipe);
 }
 

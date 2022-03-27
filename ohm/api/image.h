@@ -66,8 +66,8 @@ class Image {
   auto width() -> size_t;
   auto height() -> size_t;
   auto layers() -> size_t;
-  auto gpu() -> int;
-  auto handle() -> int32_t;
+  auto gpu() const -> int;
+  auto handle() const -> int32_t;
   auto layer(size_t index) -> Image<API, Allocator>;
   auto memory() -> const Memory<API, Allocator>&;
   auto format() -> ImageFormat;
@@ -127,7 +127,7 @@ auto Image<API, Allocator>::info() -> ImageInfo {
 }
 
 template <typename API, typename Allocator>
-auto Image<API, Allocator>::gpu() -> int {
+auto Image<API, Allocator>::gpu() const -> int {
   return this->m_memory->gpu();
 }
 
@@ -147,7 +147,7 @@ auto Image<API, Allocator>::layers() -> size_t {
 }
 
 template <typename API, typename Allocator>
-auto Image<API, Allocator>::handle() -> int32_t {
+auto Image<API, Allocator>::handle() const -> int32_t {
   return this->m_handle;
 }
 

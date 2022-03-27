@@ -243,10 +243,10 @@ auto CommandBuffer::record() -> void {
   if (!this->m_recording) {
     this->unsafe_synchronize();
     if (this->m_parent) {
-      OhmException(!this->m_parent->m_recording, Error::APIError,
-                   "Attempting to record to a child command buffer without "
-                   "beginning the parent first. Children must have their "
-                   "begin()/end() combo in the parent's begin()/end() combo.");
+      OhmAssert(!this->m_parent->m_recording,
+                "Attempting to record to a child command buffer without "
+                "beginning the parent first. Children must have their "
+                "begin()/end() combo in the parent's begin()/end() combo.");
     }
 
     for (auto& cmd : this->m_cmd_buffers) {
@@ -299,7 +299,7 @@ auto CommandBuffer::begin() -> void {
 auto CommandBuffer::copy(const Buffer& src, Buffer& dst, size_t amt) -> void {
   auto& dispatch = this->m_device->dispatch();
   auto region = vk::BufferCopy();
-  
+
   auto buffer_size = std::min(src.size(), dst.size());
   auto amt_size = std::min(buffer_size, amt * src.elementSize());
   auto size = amt == 0 ? buffer_size : amt_size;
@@ -309,12 +309,12 @@ auto CommandBuffer::copy(const Buffer& src, Buffer& dst, size_t amt) -> void {
 
   std::unique_lock<std::mutex> lock(this->m_lock);
 
-  OhmException(!this->m_recording, Error::APIError,
-               "Attempting to record to a command buffer without starting a "
-               "record operation.");
-  auto function = [&region, &src, &dst, &dispatch](vk::CommandBuffer& cmd, size_t) {
-    cmd.copyBuffer(src.buffer(), dst.buffer(), 1, &region,
-                   dispatch);
+  OhmAssert(!this->m_recording,
+            "Attempting to record to a command buffer without starting a "
+            "record operation.");
+  auto function = [&region, &src, &dst, &dispatch](vk::CommandBuffer& cmd,
+                                                   size_t) {
+    cmd.copyBuffer(src.buffer(), dst.buffer(), 1, &region, dispatch);
   };
 
   this->append(function);
@@ -336,9 +336,9 @@ auto CommandBuffer::copy(const Buffer& src, Image& dst, size_t) -> void {
   info.setImageSubresource(dst.subresource());
 
   std::unique_lock<std::mutex> lock(this->m_lock);
-  OhmException(!this->m_recording, Error::APIError,
-               "Attempting to record to a command buffer without starting a "
-               "record operation.");
+  OhmAssert(!this->m_recording,
+            "Attempting to record to a command buffer without starting a "
+            "record operation.");
 
   auto function = [&](vk::CommandBuffer& cmd, size_t) {
     cmd.copyBufferToImage(src.buffer(), dst.image(), vk::ImageLayout::eGeneral,
@@ -378,9 +378,9 @@ auto CommandBuffer::copy(Image& src, Buffer& dst, size_t) -> void {
   };
 
   std::unique_lock<std::mutex> lock(this->m_lock);
-  OhmException(!this->m_recording, Error::APIError,
-               "Attempting to record to a command buffer without starting a "
-               "record operation.");
+  OhmAssert(!this->m_recording,
+            "Attempting to record to a command buffer without starting a "
+            "record operation.");
 
   auto src_old_layout = src.layout();
 
@@ -437,9 +437,9 @@ auto CommandBuffer::copy(Image& src, Image& dst, size_t) -> void {
   region.setDstSubresource(dst.subresource());
 
   std::unique_lock<std::mutex> lock(this->m_lock);
-  OhmException(!this->m_recording, Error::APIError,
-               "Attempting to record to a command buffer without starting a "
-               "record operation.");
+  OhmAssert(!this->m_recording,
+            "Attempting to record to a command buffer without starting a "
+            "record operation.");
 
   auto function = [&](vk::CommandBuffer& cmd, size_t) {
     cmd.copyImage(src.image(), src.layout(), dst.image(), dst.layout(), 1,
@@ -523,9 +523,9 @@ auto CommandBuffer::blit(Image& src, Image& dst, Filter in_filter) -> void {
   };
 
   std::unique_lock<std::mutex> lock(this->m_lock);
-  OhmException(!this->m_recording, Error::APIError,
-               "Attempting to record to a command buffer without starting a "
-               "record operation.");
+  OhmAssert(!this->m_recording,
+            "Attempting to record to a command buffer without starting a "
+            "record operation.");
 
   this->transition(src, vk::ImageLayout::eGeneral);
   this->transition(dst, vk::ImageLayout::eGeneral);
@@ -558,9 +558,9 @@ auto CommandBuffer::combine(CommandBuffer& child) -> void {
   // we're combnining them.
   std::unique_lock<std::mutex> lock(this->m_lock);
   std::unique_lock<std::mutex> lock2(child.m_lock);
-  OhmException(!this->m_recording, Error::APIError,
-               "Attempting to combine child command buffers without recording "
-               "the parent first.");
+  OhmAssert(!this->m_recording,
+            "Attempting to combine child command buffers without recording "
+            "the parent first.");
   child.end();
 
   auto function = [&](vk::CommandBuffer& cmd, unsigned index) {
@@ -590,9 +590,9 @@ auto CommandBuffer::draw(const Buffer& vertices, unsigned instance_count)
              this->m_device->dispatch());
   };
 
-  OhmException(!this->m_recording, Error::APIError,
-               "Attempting to record to a command buffer without starting a "
-               "record operation.");
+  OhmAssert(!this->m_recording,
+            "Attempting to record to a command buffer without starting a "
+            "record operation.");
   this->append(function);
   this->m_dirty = true;
 }
@@ -615,12 +615,12 @@ auto CommandBuffer::draw(const Buffer& indices, const Buffer& vertices,
                     this->m_device->dispatch());
   };
 
-  OhmException(!this->m_recording, Error::APIError,
-               "Attempting to record to a command buffer without starting a "
-               "record operation.");
-  OhmException(!this->m_render_pass, Error::APIError,
-               "Attempting to record a rendering operation to a command buffer "
-               "without attaching a render pass.");
+  OhmAssert(!this->m_recording,
+            "Attempting to record to a command buffer without starting a "
+            "record operation.");
+  OhmAssert(!this->m_render_pass,
+            "Attempting to record a rendering operation to a command buffer "
+            "without attaching a render pass.");
   this->append(function);
   this->m_dirty = true;
 }
@@ -632,9 +632,9 @@ auto CommandBuffer::dispatch(unsigned x, unsigned y, unsigned z) -> void {
     cmd.dispatch(x, y, z, this->m_device->dispatch());
   };
 
-  OhmException(!this->m_recording, Error::APIError,
-               "Attempting to record to a command buffer without starting a "
-               "record operation.");
+  OhmAssert(!this->m_recording,
+            "Attempting to record to a command buffer without starting a "
+            "record operation.");
   this->append(function);
   this->m_dirty = true;
 }
@@ -678,9 +678,9 @@ auto CommandBuffer::transition(Image& image, vk::ImageLayout layout) -> void {
   src = vk::PipelineStageFlagBits::eTopOfPipe;
   dst = vk::PipelineStageFlagBits::eBottomOfPipe;
 
-  OhmException(!this->m_recording, Error::APIError,
-               "Attempting to record to a command buffer without starting a "
-               "record operation.");
+  OhmAssert(!this->m_recording,
+            "Attempting to record to a command buffer without starting a "
+            "record operation.");
 
   if (new_layout != vk::ImageLayout::eUndefined) {
     auto function = [&](vk::CommandBuffer& cmd, size_t) {
@@ -752,9 +752,8 @@ auto CommandBuffer::submit() -> void {
 auto CommandBuffer::present(Swapchain& swapchain) -> void {}
 
 auto CommandBuffer::wait(CommandBuffer& cmd) -> void {
-  OhmException(
-      cmd.m_depended, Error::APIError,
-      "Attempting to have multiple dependencies on one Command Buffer.");
+  OhmAssert(cmd.m_depended,
+            "Attempting to have multiple dependencies on one Command Buffer.");
   this->m_dependency = &cmd;
   cmd.m_depended = true;
 }

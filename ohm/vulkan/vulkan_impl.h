@@ -63,12 +63,16 @@ struct Vulkan {
     static auto create(int gpu, QueueType type) Ohm_NOEXCEPT -> int32_t;
     static auto destroy(int32_t handle) Ohm_NOEXCEPT -> void;
     static auto begin(int32_t handle) Ohm_NOEXCEPT -> void;
-    static auto copyArray(int32_t handle, int32_t src, int32_t dst,
-                          size_t count) Ohm_NOEXCEPT -> void;
-    static auto copyArray(int32_t handle, int32_t src, void* dst,
-                          size_t count) Ohm_NOEXCEPT -> void;
-    static auto copyArray(int32_t handle, const void* src, int32_t dst,
-                          size_t count) Ohm_NOEXCEPT -> void;
+    static auto copy_to_image(int32_t handle, int32_t src, int32_t dst,
+                              size_t count) Ohm_NOEXCEPT -> void;
+    static auto copy_image(int32_t handle, int32_t src, int32_t dst,
+                           size_t count) Ohm_NOEXCEPT -> void;
+    static auto copy_array(int32_t handle, int32_t src, int32_t dst,
+                           size_t count) Ohm_NOEXCEPT -> void;
+    static auto copy_array(int32_t handle, int32_t src, void* dst,
+                           size_t count) Ohm_NOEXCEPT -> void;
+    static auto copy_array(int32_t handle, const void* src, int32_t dst,
+                           size_t count) Ohm_NOEXCEPT -> void;
     static auto submit(int32_t handle) Ohm_NOEXCEPT -> void;
     static auto synchronize(int32_t handle) Ohm_NOEXCEPT -> void;
   };

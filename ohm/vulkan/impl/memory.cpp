@@ -16,8 +16,8 @@ namespace ohm {
 namespace ovk {
 constexpr unsigned MIN_ALLOC_SIZE = 256;
 
-uint32_t memType(uint32_t filter, vk::MemoryPropertyFlags flag,
-                 vk::PhysicalDevice device) {
+auto memType(uint32_t filter, vk::MemoryPropertyFlags flag,
+                 vk::PhysicalDevice device) -> uint32_t {
   vk::PhysicalDeviceMemoryProperties mem_prop;
 
   mem_prop = device.getMemoryProperties(system().instance.dispatch());
@@ -74,6 +74,20 @@ Memory::Memory(const Memory& parent, unsigned offset) {
 
 Memory::Memory(Memory&& mv) { *this = std::move(mv); }
 
+Memory::~Memory() {
+  if (this->initialized() && this->offset == 0) {
+    this->device->device().free(this->memory, this->device->allocationCB(),
+                                this->device->dispatch());
+    this->size = 0;
+    this->offset = 0;
+    this->coherent = false;
+    this->host_ptr = nullptr;
+    this->memory = nullptr;
+    this->device = nullptr;
+    this->heap = 0;
+  }
+}
+
 auto Memory::operator=(Memory&& mv) -> Memory& {
   this->size = mv.size;
   this->offset = mv.offset;
@@ -94,25 +108,11 @@ auto Memory::operator=(Memory&& mv) -> Memory& {
   return *this;
 }
 
-Memory::~Memory() {
-  if (this->initialized() && this->offset == 0) {
-    this->device->device().free(this->memory, this->device->allocationCB(),
-                                this->device->dispatch());
-    this->size = 0;
-    this->offset = 0;
-    this->coherent = false;
-    this->host_ptr = nullptr;
-    this->memory = nullptr;
-    this->device = nullptr;
-    this->heap = 0;
-  }
-}
-
 auto Memory::map(void** ptr) const -> void {
-  OhmException(!this->initialized(), Error::LogicError,
-               "Mapping an invalid memory object to host memory.");
-  OhmException(!this->coherent, Error::LogicError,
-               "Attempting to map memory that is not using a mappable heap.");
+  OhmAssert(!this->initialized(),
+            "Mapping an invalid memory object to host memory.");
+  OhmAssert(!this->coherent,
+            "Attempting to map memory that is not using a mappable heap.");
 
   vk::DeviceSize offset = this->offset;
   vk::DeviceSize amount = this->size - offset;
@@ -124,8 +124,8 @@ auto Memory::map(void** ptr) const -> void {
 }
 
 auto Memory::unmap() const -> void {
-  OhmException(!this->initialized() || !this->coherent || !this->host_ptr,
-               Error::LogicError, "Error attempting to unmap memory.");
+  OhmAssert(!this->initialized() || !this->coherent || !this->host_ptr,
+            "Error attempting to unmap memory.");
   this->device->device().unmapMemory(this->memory, this->device->dispatch());
 }
 }  // namespace ovk

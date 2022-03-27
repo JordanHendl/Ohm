@@ -27,13 +27,23 @@ class Exception : public std::exception {
  * compiled out.
  */
 #ifdef Ohm_Debug
+}
+#include <cassert>
+#include <iostream>
+namespace ohm {
+#define OhmAssert(cond, description)       \
+  if (cond) {                              \
+    std::cout << description << std::endl; \
+    assert(cond);                          \
+  }
+
 #define OhmException(cond, error, description) \
   if (cond) {                                  \
     throw ohm::Exception(error, description);  \
   }
-
 #define Ohm_NOEXCEPT
 #else
+#define OhmAssert(cond, description)
 #define OhmException(cond, error, description)
 #define Ohm_NOEXCEPT noexcept
 #endif

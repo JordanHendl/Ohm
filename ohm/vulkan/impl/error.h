@@ -10,8 +10,8 @@ namespace ovk {
  */
 template <typename T>
 inline auto error(vk::ResultValue<T> result) {
-  OhmException(result.result != vk::Result::eSuccess, Error::APIError,
-               vk::to_string(result.result));
+  OhmAssert(result.result != vk::Result::eSuccess,
+            vk::to_string(result.result));
   return result.value;
 }
 
@@ -20,8 +20,7 @@ inline auto error(vk::ResultValue<T> result) {
  * Otherwise, this function is a NOP and should get compiled out.
  */
 inline auto error(vk::Result result) {
-  OhmException(result != vk::Result::eSuccess, Error::APIError,
-               vk::to_string(result));
+  OhmAssert(result != vk::Result::eSuccess, vk::to_string(result));
 }
 }  // namespace ovk
 }  // namespace ohm
