@@ -30,7 +30,7 @@ class Instance {
   auto addValidationLayer(const char* layer_name) -> void;
   auto devices() -> const std::vector<vk::PhysicalDevice>&;
   auto instance() -> vk::Instance;
-  auto dispatch() -> vk::DispatchLoaderDynamic;
+  auto dispatch() -> vk::DispatchLoaderDynamic&;
   auto device(unsigned id) -> vk::PhysicalDevice;
 
  private:

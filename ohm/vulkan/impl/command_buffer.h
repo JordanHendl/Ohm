@@ -61,7 +61,6 @@ class CommandBuffer {
   auto dispatch(unsigned x, unsigned y, unsigned z = 1) -> void;
   auto depended() const -> bool;
   auto setDepended(bool flag) -> void;
-  auto fence() const -> const vk::Fence&;
   auto end() -> void;
   //          auto transition( Image& texture, Layout layout ) -> void ;
   auto transition(Image& texture, vk::ImageLayout layout) -> void;
@@ -69,7 +68,7 @@ class CommandBuffer {
   //        vk::ImageLayout layout ) -> void ;
   auto synchronize() -> void;
   auto submit() -> void;
-  auto present(Swapchain& swapchain) -> void;
+  auto present(Swapchain& swapchain) -> bool;
   auto pipelineBarrier(unsigned src, unsigned dst) -> void;
   auto wait(CommandBuffer& buffer) -> void;
   auto cmd(unsigned index) -> vk::CommandBuffer;
@@ -77,6 +76,9 @@ class CommandBuffer {
   inline auto queue() -> Queue& { return *this->m_queue; }
   inline auto current() const {
     return this->m_cmd_buffers[this->m_current_id];
+  }
+  inline auto fence() const -> const vk::Fence& {
+    return this->m_sync_info[this->m_current_id].fence;
   }
   inline auto fence(unsigned index) { return this->m_sync_info[index].fence; }
   inline auto initialized() const { return !this->m_cmd_buffers.empty(); }

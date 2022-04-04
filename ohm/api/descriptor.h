@@ -52,7 +52,8 @@ Descriptor<API>::Descriptor(int32_t handle, const Pipeline<API>* parent) {
 
 template <typename API>
 Descriptor<API>::~Descriptor() {
-  API::Descriptor::destroy(this->m_handle);
+  if (this->m_handle >= 0) API::Descriptor::destroy(this->m_handle);
+
   this->m_handle = -1;
   this->m_parent = nullptr;
 }

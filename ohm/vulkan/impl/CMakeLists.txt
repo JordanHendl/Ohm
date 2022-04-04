@@ -12,6 +12,8 @@ set(vulkan_impl_srcs
      shader.cpp
      pipeline.cpp
      descriptor.cpp
+     swapchain.cpp
+     window.cpp
    )
 
 set(vulkan_impl_includes

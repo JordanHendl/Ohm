@@ -46,10 +46,9 @@ debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
               VkDebugUtilsMessageTypeFlagsEXT messageType,
               const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
               void* pUserData) {
-  const vk::DebugUtilsMessageSeverityFlagsEXT severity =
+  auto severity =
       static_cast<vk::DebugUtilsMessageSeverityFlagsEXT>(messageSeverity);
-  const vk::DebugUtilsMessageTypeFlagsEXT type =
-      static_cast<vk::DebugUtilsMessageTypeFlagsEXT>(messageType);
+  auto type = static_cast<vk::DebugUtilsMessageTypeFlagsEXT>(messageType);
 
   const char* COLOR;
   COLOR = COLOR_YELLOW;
@@ -64,12 +63,12 @@ debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     COLOR = COLOR_RED;
 
   std::cout << "\n";
-  std::cout << COLOR << "--Ohm Instance Debug" << END_COLOR << "\n";
-  std::cout << COLOR << "--Type    : " << vk::to_string(type) << END_COLOR
+  std::cout << COLOR << "[Ohm Instance Debug]" << END_COLOR << "\n";
+  std::cout << COLOR << "  Type    : " << vk::to_string(type) << END_COLOR
             << "\n";
-  std::cout << COLOR << "--Severity: " << vk::to_string(severity) << END_COLOR
+  std::cout << COLOR << "  Severity: " << vk::to_string(severity) << END_COLOR
             << "\n";
-  std::cout << COLOR << "---> Message: " << pCallbackData->pMessage << END_COLOR
+  std::cout << COLOR << "  Message: " << pCallbackData->pMessage << END_COLOR
             << "\n";
 
   pUserData = pUserData;
@@ -191,7 +190,7 @@ const std::vector<vk::PhysicalDevice>& Instance::devices() {
 
 vk::Instance Instance::instance() { return this->m_instance; }
 
-auto Instance::dispatch() -> vk::DispatchLoaderDynamic {
+auto Instance::dispatch() -> vk::DispatchLoaderDynamic& {
   return this->m_dispatch;
 }
 

@@ -2,17 +2,13 @@
 // interface so implementers of the Ohm API can convert whatever OS/Library
 // specific types to.
 #pragma once
+#include <functional>
 #include <string>
+#include <vector>
 namespace ohm {
 class Event;
 enum class Key;
 enum class MouseButton;
-
-inline static auto to_string(const Event& event) -> std::string;
-
-inline static auto to_string(const Key& key) -> std::string;
-
-inline static auto to_string(const MouseButton& button) -> std::string;
 
 enum class Key {
   None,
@@ -136,38 +132,36 @@ class Event {
 };
 
 inline static auto to_string(const Event::Type& event) -> std::string;
+inline static auto to_string(const Event& event) -> std::string;
+inline static auto to_string(const Key& key) -> std::string;
+inline static auto to_string(const MouseButton& button) -> std::string;
 
-using EventCallback = void (*)(const Event&);
-class Subscriber {
+template <typename API>
+class EventRegister {
  public:
-  virtual ~Subscriber(){};
-  virtual void execute(const Event& event) = 0;
-};
-
-template <class Object>
-class MethodSubscriber : public Subscriber {
- public:
-  using Callback = void (Object::*)(const Event&);
-
-  MethodSubscriber(Object* obj, Callback callback);
-
-  inline auto execute(const Event& event) -> void;
+  inline EventRegister();
+  ~EventRegister();
+  inline auto add(std::function<void(const Event&)> callback) -> void;
 
  private:
-  Object* object;
-  Callback callback;
+  int32_t m_handle;
 };
 
-class FunctionSubscriber : public Subscriber {
- public:
-  using Callback = void (*)(const Event&);
-  inline FunctionSubscriber(Callback callback);
+template <typename API>
+EventRegister<API>::EventRegister() {
+  this->m_handle = API::Event::create();
+}
 
-  inline auto execute(const Event& event) -> void;
+template <typename API>
+EventRegister<API>::~EventRegister() {
+  API::Event::destroy(this->m_handle);
+}
 
- private:
-  Callback callback;
-};
+template <typename API>
+auto EventRegister<API>::add(std::function<void(const Event&)> callback)
+    -> void {
+  API::Event::add(this->m_handle, callback);
+}
 
 auto to_string(const Event& event) -> std::string {
   switch (event.type()) {
@@ -314,24 +308,5 @@ auto to_string(const MouseButton& button) -> std::string {
     default:
       return "Unknown";
   }
-}
-
-template <class Object>
-MethodSubscriber<Object>::MethodSubscriber(Object* obj, Callback callback) {
-  this->object = obj;
-  this->callback = callback;
-}
-
-template <class Object>
-auto MethodSubscriber<Object>::execute(const Event& event) -> void {
-  ((this->object)->*(this->callback))(event);
-}
-
-inline FunctionSubscriber::FunctionSubscriber(Callback callback) {
-  this->callback = callback;
-}
-
-auto FunctionSubscriber::execute(const Event& event) -> void {
-  (this->callback)(event);
 }
 }  // namespace ohm

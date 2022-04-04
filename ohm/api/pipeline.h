@@ -82,6 +82,7 @@ class Pipeline {
   explicit Pipeline(Pipeline&& mv);
   ~Pipeline();
   auto operator=(Pipeline&& mv) -> Pipeline&;
+  auto info() const -> const PipelineInfo&;
   auto gpu() const -> int;
   auto descriptor() const -> Descriptor<API>;
   auto handle() const -> int32_t;
@@ -145,6 +146,11 @@ auto Pipeline<API>::operator=(Pipeline&& mv) -> Pipeline& {
   mv.m_gpu = -1;
   mv.m_info = {};
   return *this;
+}
+
+template <typename API>
+auto Pipeline<API>::info() const -> const PipelineInfo& {
+  return this->m_info;
 }
 
 template <typename API>

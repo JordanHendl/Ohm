@@ -106,6 +106,20 @@ struct Vulkan {
     static auto bind_images(int32_t handle, std::string_view name,
                             const std::vector<int32_t>& images) -> void;
   };
+
+  /** Window-related function API
+   */
+  struct Window {
+    static auto create(int gpu, const WindowInfo& info) Ohm_NOEXCEPT -> int32_t;
+    static auto count(int32_t handle) Ohm_NOEXCEPT -> size_t;
+    static auto image(int32_t handle, size_t index) Ohm_NOEXCEPT -> int32_t;
+    static auto update(int32_t handle, const WindowInfo& info) Ohm_NOEXCEPT
+        -> void;
+    static auto wait(int32_t handle, int32_t cmd) Ohm_NOEXCEPT -> void;
+    static auto present(int32_t handle) Ohm_NOEXCEPT -> void;
+    static auto poll(int32_t handle) Ohm_NOEXCEPT -> void;
+    static auto destroy(int32_t handle) Ohm_NOEXCEPT -> void;
+  };
 };
 }  // namespace v1
 }  // namespace ohm

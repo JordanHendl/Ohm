@@ -50,7 +50,7 @@ class Descriptor {
 
   auto initialized() const -> bool { return this->m_set; }
   auto pipeline() const -> const Pipeline& { return *this->m_pipeline; }
-  auto set() const { return this->m_set; }
+  auto set() -> vk::DescriptorSet& { return this->m_set; }
 
  private:
   using UniformMap = DescriptorPool::UniformMap;

@@ -52,7 +52,21 @@ struct ImageInfo {
   auto count() const -> size_t {
     return this->width * this->height * this->layers;
   }
+
+  auto operator=(const ImageInfo& cp) -> ImageInfo& {
+    this->format = cp.format;
+    this->width = cp.width;
+    this->height = cp.height;
+    this->layers = cp.layers;
+    this->is_cubemap = cp.is_cubemap;
+    this->mip_maps = cp.mip_maps;
+
+    return *this;
+  }
 };
+
+template <typename API>
+class Window;
 
 template <typename API, typename Allocator = DefaultAllocator<API>>
 class Image {
@@ -73,6 +87,8 @@ class Image {
   auto format() -> ImageFormat;
 
  private:
+  friend class Window<API>;
+
   int32_t m_handle;
   ImageInfo m_info;
   std::shared_ptr<Memory<API, Allocator>> m_memory;

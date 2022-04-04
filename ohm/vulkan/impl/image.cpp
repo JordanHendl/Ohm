@@ -147,6 +147,8 @@ auto Image::createImage() -> vk::Image {
   flags.push_back(vk::ImageUsageFlagBits::eTransferSrc);
   flags.push_back(vk::ImageUsageFlagBits::eTransferDst);
   flags.push_back(vk::ImageUsageFlagBits::eStorage);
+  flags.push_back(vk::ImageUsageFlagBits::eSampled);
+  flags.push_back(vk::ImageUsageFlagBits::eSampled);
   if (this->m_info.format == ImageFormat::Depth) {
     flags.push_back(vk::ImageUsageFlagBits::eDepthStencilAttachment);
   }
@@ -274,6 +276,8 @@ auto Image::operator=(Image&& mv) -> Image& {
   this->m_image = mv.m_image;
   this->m_view = mv.m_view;
   this->m_sampler = mv.m_sampler;
+  this->m_info = mv.m_info;
+  this->m_start_layout = mv.m_start_layout;
 
   mv.m_layout = vk::ImageLayout::eUndefined;
   mv.m_old_layout = vk::ImageLayout::eUndefined;
@@ -294,7 +298,8 @@ auto Image::operator=(Image&& mv) -> Image& {
   mv.m_sampler = nullptr;
   mv.m_view = nullptr;
   mv.m_image = nullptr;
-
+  mv.m_info = {};
+  mv.m_start_layout = vk::ImageLayout::eUndefined;
   return *this;
 }
 

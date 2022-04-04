@@ -10,13 +10,15 @@
 #include <iostream>
 #include <map>
 #include <vector>
-#include "buffer.h"
-#include "device.h"
-#include "error.h"
-#include "image.h"
-#include "memory.h"
 #include "ohm/api/exception.h"
-
+#include "ohm/vulkan/impl/buffer.h"
+#include "ohm/vulkan/impl/descriptor.h"
+#include "ohm/vulkan/impl/device.h"
+#include "ohm/vulkan/impl/error.h"
+#include "ohm/vulkan/impl/image.h"
+#include "ohm/vulkan/impl/memory.h"
+#include "ohm/vulkan/impl/pipeline.h"
+#include "ohm/vulkan/impl/swapchain.h"
 namespace ohm {
 namespace ovk {
 constexpr unsigned BUFFER_COUNT = 4;
@@ -469,21 +471,26 @@ auto CommandBuffer::addDependancy(vk::Semaphore semaphore) -> void {
 }
 
 auto CommandBuffer::bind(Descriptor& desc) -> void {
-  //        auto& pipeline = desc.pipeline();
-  //        const auto bind_point = pipeline.graphics() ?
-  //        vk::PipelineBindPoint::eGraphics : vk::PipelineBindPoint::eCompute ;
-  //        auto function = [&]( vk::CommandBuffer& cmd, size_t )
-  //        {
-  //          cmd.bindPipeline( bind_point, pipeline.pipeline(),
-  //          this->m_device->dispatch()) ; if( desc.set() )
-  //          cmd.bindDescriptorSets( bind_point, pipeline.layout(), 0, 1,
-  //          &desc.set(), 0, nullptr, this->m_device->dispatch() ) ;
-  //        };
-  //
-  //        std::unique_lock<std::mutex> lock( this->m_lock ) ;
-  //        this->m_record( true ) ;
-  //        this->m_append( function ) ;
-  //        this->m_dirty = true ;
+  auto& pipeline = desc.pipeline();
+  auto vk_pipe = pipeline.pipeline();
+  auto layout = pipeline.layout();
+  auto& dispatch = this->m_device->dispatch();
+  const auto bind_point = pipeline.graphics() ? vk::PipelineBindPoint::eGraphics
+                                              : vk::PipelineBindPoint::eCompute;
+
+  auto function = [&](vk::CommandBuffer& cmd, size_t) {
+    cmd.bindPipeline(bind_point, vk_pipe, this->m_device->dispatch());
+    if (desc.set())
+      cmd.bindDescriptorSets(bind_point, layout, 0, 1, &desc.set(), 0, nullptr,
+                             dispatch);
+  };
+
+  std::unique_lock<std::mutex> lock(this->m_lock);
+  OhmAssert(!this->m_recording,
+            "Attempting to record to a command buffer without starting a "
+            "record operation.");
+  this->append(function);
+  this->m_dirty = true;
 }
 
 auto CommandBuffer::blit(Image& src, Image& dst, Filter in_filter) -> void {
@@ -600,9 +607,7 @@ auto CommandBuffer::draw(const Buffer& vertices, unsigned instance_count)
 auto CommandBuffer::draw(const Buffer& indices, const Buffer& vertices,
                          unsigned instance_count) -> void {
   std::unique_lock<std::mutex> lock(this->m_lock);
-
   const auto& vertex_offset = vertices.memory().offset;
-
   const auto& vertex_buffer = vertices.buffer();
   const auto& index_buffer = indices.buffer();
 
@@ -644,12 +649,12 @@ auto CommandBuffer::depended() const -> bool { return this->m_depended; }
 auto CommandBuffer::setDepended(bool flag) -> void { this->m_depended = flag; }
 
 auto CommandBuffer::transition(Image& image, vk::ImageLayout layout) -> void {
-  vk::ImageSubresourceRange range;
-  vk::PipelineStageFlags src;
-  vk::PipelineStageFlags dst;
-  vk::DependencyFlags dep_flags;
-  vk::ImageLayout new_layout;
-  vk::ImageLayout old_layout;
+  auto range = vk::ImageSubresourceRange();
+  auto src = vk::PipelineStageFlags();
+  auto dst = vk::PipelineStageFlags();
+  auto dep_flags = vk::DependencyFlags();
+  auto new_layout = vk::ImageLayout();
+  auto old_layout = vk::ImageLayout();
 
   new_layout = layout;
   old_layout = image.layout();
@@ -701,7 +706,7 @@ auto CommandBuffer::synchronize() -> void {
 }
 
 auto CommandBuffer::submit() -> void {
-  vk::SubmitInfo info;
+  auto info = vk::SubmitInfo();
 
   if (!this->m_dirty) return;
   std::unique_lock<std::mutex> lock(this->m_lock);
@@ -749,7 +754,25 @@ auto CommandBuffer::submit() -> void {
   this->m_first = false;
 }
 
-auto CommandBuffer::present(Swapchain& swapchain) -> void {}
+auto CommandBuffer::present(Swapchain& swapchain) -> bool {
+  auto info = vk::PresentInfoKHR();
+  auto queue = this->m_device->graphics().queue;
+  auto indices = swapchain.front();
+  auto chain = swapchain.swapchain();
+  auto& sync = this->m_sync_info[this->previousID()];
+
+  info.setPImageIndices(&indices);
+  info.setSwapchainCount(1);
+  info.setPSwapchains(&chain);
+  info.setWaitSemaphoreCount(1);
+  info.setPWaitSemaphores(&sync.semaphore);
+
+  // Don't assert here because we may just need to handle window resizes.
+  // @JH TODO: This technically should assert on all errors that aren't window
+  // resizes.
+  auto result = queue.presentKHR(&info, this->m_device->dispatch());
+  return result == vk::Result::eSuccess;
+}
 
 auto CommandBuffer::wait(CommandBuffer& cmd) -> void {
   OhmAssert(cmd.m_depended,

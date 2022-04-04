@@ -5,6 +5,7 @@
 #define VULKAN_HPP_NO_EXCEPTIONS
 
 #include "ohm/vulkan/vulkan_impl.h"
+#include "impl/swapchain.h"
 #include "ohm/api/exception.h"
 #include "ohm/api/memory.h"
 #include "ohm/api/system.h"
@@ -504,5 +505,56 @@ auto Vulkan::Descriptor::bind_images(int32_t handle, std::string_view name,
 
   val.bind(name, images_to_bind.data(), images.size());
 }
+
+auto Vulkan::Window::create(int gpu, const WindowInfo& info) Ohm_NOEXCEPT
+    -> int32_t {
+  auto& device = ovk::system().devices[gpu];
+  auto index = 0;
+  for (auto& window : ovk::system().window) {
+    if (!window.initialized()) {
+      // This vulkan implementation couples swapchains & images 1:1 so
+      // we have to create both here.
+      auto& swap = ovk::system().swapchain[index];
+      window = std::move(ovk::Window(info));
+      swap = std::move(ovk::Swapchain(device, window.surface(), info.vsync));
+      return index;
+    }
+    index++;
+  }
+
+  OhmAssert(true,
+            "Too many windows. API has run out of allocation cache space.");
+  return -1;
+}
+
+auto Vulkan::Window::destroy(int32_t handle) Ohm_NOEXCEPT -> void {
+  OhmAssert(handle < 0, "Attempting to delete an invalid window handle.");
+  auto& val = ovk::system().window[handle];
+  auto& val2 = ovk::system().swapchain[handle];
+  auto tmp = ovk::Window();
+  auto tmp2 = ovk::Swapchain();
+
+  OhmAssert(!val.initialized(),
+            "Attempting to destroy a window object that is not initialized.");
+
+  tmp = std::move(val);
+  tmp2 = std::move(val2);
+}
+
+auto Vulkan::Window::count(int32_t handle) Ohm_NOEXCEPT -> size_t { return 0; }
+
+auto Vulkan::Window::image(int32_t handle, size_t index) Ohm_NOEXCEPT
+    -> int32_t {
+  return -1;
+}
+
+auto Vulkan::Window::update(int32_t handle, const WindowInfo& info) Ohm_NOEXCEPT
+    -> void {}
+
+auto Vulkan::Window::wait(int32_t handle, int32_t cmd) Ohm_NOEXCEPT -> void {}
+
+auto Vulkan::Window::present(int32_t handle) Ohm_NOEXCEPT -> void {}
+
+auto Vulkan::Window::poll(int32_t handle) Ohm_NOEXCEPT -> void {}
 }  // namespace v1
 }  // namespace ohm

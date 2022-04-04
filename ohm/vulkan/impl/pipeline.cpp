@@ -97,6 +97,7 @@ auto Pipeline::operator=(Pipeline&& mv) -> Pipeline& {
   mv.m_pipeline = nullptr;
   mv.m_layout = nullptr;
 
+  this->m_pool = std::move(mv.m_pool);
   this->m_shader = std::move(mv.m_shader);
   return *this;
 }

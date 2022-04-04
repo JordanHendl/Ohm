@@ -34,6 +34,8 @@ DescriptorPool::DescriptorPool() {
   this->m_pool = nullptr;
 }
 
+DescriptorPool::DescriptorPool(DescriptorPool&& mv) { *this = std::move(mv); }
+
 DescriptorPool::~DescriptorPool() {
   if (this->m_pool) {
     auto device = this->m_device->device();
@@ -43,6 +45,23 @@ DescriptorPool::~DescriptorPool() {
     error(device.resetDescriptorPool(this->m_pool, flags, dispatch));
     device.destroy(this->m_pool, alloc_cb, dispatch);
   }
+}
+
+auto DescriptorPool::operator=(DescriptorPool&& mv) -> DescriptorPool& {
+  this->m_pool = mv.m_pool;
+  this->m_amount = mv.m_amount;
+  this->m_pipeline = mv.m_pipeline;
+  this->m_layout = mv.m_layout;
+  this->m_device = mv.m_device;
+
+  mv.m_pool = nullptr;
+  mv.m_layout = nullptr;
+  mv.m_device = nullptr;
+  mv.m_pipeline = nullptr;
+  mv.m_amount = 20;
+
+  this->m_map = std::move(mv.m_map);
+  return *this;
 }
 
 auto DescriptorPool::initialize(const Pipeline& pipeline, size_t amount)

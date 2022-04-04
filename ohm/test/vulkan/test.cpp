@@ -148,7 +148,42 @@ auto test_getters() -> bool {
   return pass;
 }
 }  // namespace image
+namespace render_pass {
+auto test_creation() -> bool {
+  auto rp = RenderPass<API>();
+  return rp.handle() >= 0;
+}
+}  // namespace render_pass
 
+namespace pipeline {
+auto test_creation() -> bool {
+  auto pipeline =
+      Pipeline<API>(0, {{{"test_shader.comp.glsl", test_compute_shader}}});
+  return pipeline.handle() >= 0;
+}
+auto test_correct_gpu() -> bool {
+  auto pipeline =
+      Pipeline<API>(0, {{{"test_shader.comp.glsl", test_compute_shader}}});
+  return pipeline.gpu() == 0;
+}
+}  // namespace pipeline
+namespace descriptor {
+auto test_creation() -> bool {
+  auto pipeline =
+      Pipeline<API>(0, {{{"test_shader.comp.glsl", test_compute_shader}}});
+  auto descriptor = pipeline.descriptor();
+  return descriptor.handle() >= 0;
+}
+
+auto test_binding() -> bool {
+  auto pipeline =
+      Pipeline<API>(0, {{{"test_shader.comp.glsl", test_compute_shader}}});
+  auto image = Image<API>(0, {1024, 1024, ImageFormat::RGBA32F});
+  auto descriptor = pipeline.descriptor();
+  descriptor.bind("input_tex", image);
+  return descriptor.handle() >= 0;
+}
+}  // namespace descriptor
 namespace commands {
 auto test_creation() -> bool {
   auto commands = Commands<API>(0);
@@ -259,37 +294,12 @@ auto test_image_copy() -> bool {
   return true;
 }
 }  // namespace commands
-namespace render_pass {
+namespace window {
 auto test_creation() -> bool {
-  auto rp = RenderPass<API>();
-  return rp.handle() >= 0;
+  auto window = Window<API>(0, {});
+  return window.handle() >= 0;
 }
-}  // namespace render_pass
-
-namespace pipeline {
-auto test_creation() -> bool {
-  auto pipeline =
-      Pipeline<API>(0, {{{"test_shader.comp.glsl", test_compute_shader}}});
-  return pipeline.handle() >= 0;
-}
-}  // namespace pipeline
-namespace descriptor {
-auto test_creation() -> bool {
-  auto pipeline =
-      Pipeline<API>(0, {{{"test_shader.comp.glsl", test_compute_shader}}});
-  auto descriptor = pipeline.descriptor();
-  return descriptor.handle() >= 0;
-}
-
-auto test_binding() -> bool {
-  auto pipeline =
-      Pipeline<API>(0, {{{"test_shader.comp.glsl", test_compute_shader}}});
-  auto image = Image<API>(0, {});
-  auto descriptor = pipeline.descriptor();
-  descriptor.bind("input_tex", image);
-  return descriptor.handle() >= 0;
-}
-}  // namespace descriptor
+}  // namespace window
 }  // namespace ohm
 
 TEST(Vulkan, System) {
@@ -319,9 +329,16 @@ TEST(Vulkan, Image) {
   EXPECT_TRUE(ohm::image::test_memory_allocation());
 }
 
-TEST(Vulkan, Pipeline) { EXPECT_TRUE(ohm::pipeline::test_creation()); }
+TEST(Vulkan, Pipeline) {
+  EXPECT_TRUE(ohm::pipeline::test_creation());
+  EXPECT_TRUE(ohm::pipeline::test_correct_gpu());
+}
 
-TEST(Vulkan, Descriptor) {}
+TEST(Vulkan, Descriptor) {
+  EXPECT_TRUE(ohm::descriptor::test_creation());
+  EXPECT_TRUE(ohm::descriptor::test_binding());
+}
+
 TEST(Vulkan, Commands) {
   EXPECT_TRUE(ohm::commands::test_creation());
   EXPECT_TRUE(ohm::commands::test_host_to_array_copy());
@@ -331,9 +348,9 @@ TEST(Vulkan, Commands) {
 }
 
 auto main(int argc, char* argv[]) -> int {
-  ohm::System<ohm::API>::setDebugParameter("VK_LAYER_KHRONOS_validation");
-  ohm::System<ohm::API>::setDebugParameter(
-      "VK_LAYER_LUNARG_standard_validation");
+  //  ohm::System<ohm::API>::setDebugParameter("VK_LAYER_KHRONOS_validation");
+  //  ohm::System<ohm::API>::setDebugParameter(
+  //      "VK_LAYER_LUNARG_standard_validation");
   ohm::System<ohm::API>::initialize();
   testing::InitGoogleTest(&argc, argv);
   auto success = RUN_ALL_TESTS();

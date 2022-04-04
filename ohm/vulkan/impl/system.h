@@ -1,9 +1,8 @@
 #pragma once
 #include <string>
 
-#include "ohm/api/system.h"
-
 #include <vulkan/vulkan.hpp>
+#include "ohm/api/system.h"
 #include "ohm/io/dlloader.h"
 #include "ohm/vulkan/impl/buffer.h"
 #include "ohm/vulkan/impl/command_buffer.h"
@@ -13,11 +12,12 @@
 #include "ohm/vulkan/impl/instance.h"
 #include "ohm/vulkan/impl/memory.h"
 #include "ohm/vulkan/impl/pipeline.h"
-
+#include "ohm/vulkan/impl/swapchain.h"
+#include "ohm/vulkan/impl/window.h"
 namespace ohm {
 namespace ovk {
-constexpr auto NUM_CACHE = 2048;
-
+constexpr auto CACHE_SIZE = 2048;
+constexpr auto NUM_WINDOWS = 4;
 struct System {
   io::Dlloader loader;
   std::string system_name;
@@ -27,15 +27,23 @@ struct System {
   std::vector<ovk::Device> devices;
   std::vector<ohm::Gpu> gpus;
 
-  std::array<Memory, NUM_CACHE> memory;
-  std::array<Buffer, NUM_CACHE> buffer;
-  std::array<Image, NUM_CACHE> image;
-  std::array<CommandBuffer, NUM_CACHE> commands;
-  std::array<Pipeline, NUM_CACHE> pipeline;
-  std::array<Descriptor, NUM_CACHE> descriptor;
+  std::array<Memory, CACHE_SIZE> memory;
+  std::array<Buffer, CACHE_SIZE> buffer;
+  std::array<Image, CACHE_SIZE> image;
+  std::array<CommandBuffer, CACHE_SIZE> commands;
+  std::array<Pipeline, CACHE_SIZE> pipeline;
+  std::array<Descriptor, CACHE_SIZE> descriptor;
+  std::array<Window, NUM_WINDOWS> window;
+  std::array<Swapchain, NUM_WINDOWS> swapchain;
   vk::AllocationCallbacks* allocate_cb;
 
   auto shutdown() -> void {
+    for (auto& thing : this->swapchain) {
+      auto tmp = std::move(thing);
+    }
+    for (auto& thing : this->window) {
+      auto tmp = std::move(thing);
+    }
     for (auto& thing : this->image) {
       auto tmp = std::move(thing);
     }

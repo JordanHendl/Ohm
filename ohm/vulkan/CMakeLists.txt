@@ -10,6 +10,10 @@ set(vulkan_hdrs
 set(vulkan_srcs 
     vulkan_impl.cpp
    )
+
+set(vulkan_includes
+     ${SDL2_INCLUDE_DIRS}
+   )
 set(vulkan_libs
      vulkan_impl
      ${shaderc_libraries}
