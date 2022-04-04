@@ -374,8 +374,9 @@ auto Image::initialize(Device& device, const ImageInfo& info,
 
   this->m_image = prealloc;
   this->m_preallocated = true;
-//  this->m_requirements = this->m_device->device().getImageMemoryRequirements(
-//      this->m_image, this->m_device->dispatch());
+  //  this->m_requirements =
+  //  this->m_device->device().getImageMemoryRequirements(
+  //      this->m_image, this->m_device->dispatch());
   this->m_view = this->createView();
   this->m_sampler = this->createSampler();
   return this->m_requirements.size;

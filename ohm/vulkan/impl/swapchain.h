@@ -26,10 +26,10 @@ class Swapchain {
   auto initialized() const -> bool { return this->m_swapchain; }
   auto device() const -> Device& { return *this->m_device; }
   auto dependency() const -> CommandBuffer* { return this->m_dependency; }
-  auto textures() const -> const std::vector<int32_t>& {
+  auto images() const -> const std::vector<int32_t>& {
     return this->m_images;
   }
-  auto textures() -> std::vector<int32_t>& { return this->m_images; }
+  auto images() -> std::vector<int32_t>& { return this->m_images; }
   auto surface() const { return this->m_surface; }
   auto vsync() const { return this->m_vsync; }
   auto width() const { return this->m_extent.width; }

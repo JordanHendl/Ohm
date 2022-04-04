@@ -21,20 +21,18 @@
 #include "ohm/vulkan/impl/swapchain.h"
 namespace ohm {
 namespace ovk {
-constexpr unsigned BUFFER_COUNT = 4;
+constexpr unsigned BUFFER_COUNT = 3;
 
 static std::map<vk::Device, std::map<Family, vk::CommandPool>> pool_map;
 auto CommandBuffer::create_pool(Family queue_family) -> vk::CommandPool {
   const vk::CommandPoolCreateFlags flags =
       vk::CommandPoolCreateFlagBits::eResetCommandBuffer;  // TODO make this
                                                            // configurable.
-  vk::CommandPoolCreateInfo info;
-
+  auto info = vk::CommandPoolCreateInfo();
   info.setFlags(flags);
   info.setQueueFamilyIndex(queue_family);
 
   auto& queue_map = pool_map[this->m_device->device()];
-
   auto iter = queue_map.find(queue_family);
   if (iter == queue_map.end()) {
     auto pool = error(this->m_device->device().createCommandPool(
@@ -66,7 +64,7 @@ CommandBuffer::CommandBuffer() {
 }
 
 CommandBuffer::CommandBuffer(Device& device, QueueType type) {
-  vk::CommandBufferAllocateInfo info;
+  auto info = vk::CommandBufferAllocateInfo();
   this->m_device = &device;
 
   this->m_subpass_flags = vk::SubpassContents::eInline;
@@ -118,7 +116,7 @@ CommandBuffer::CommandBuffer(Device& device, QueueType type) {
 }
 
 CommandBuffer::CommandBuffer(CommandBuffer& cmd) {
-  vk::CommandBufferAllocateInfo info;
+  auto info = vk::CommandBufferAllocateInfo();
 
   this->m_subpass_flags = vk::SubpassContents::eInline;
   this->m_recording = false;
@@ -294,7 +292,7 @@ auto CommandBuffer::unsafe_synchronize() -> void {
 }
 
 auto CommandBuffer::begin() -> void {
-  std::unique_lock<std::mutex> lock(this->m_lock);
+  auto lock = std::unique_lock<std::mutex>(this->m_lock);
   this->record();
 }
 
@@ -309,7 +307,7 @@ auto CommandBuffer::copy(const Buffer& src, Buffer& dst, size_t amt) -> void {
   region.setSrcOffset(0);
   region.setDstOffset(0);
 
-  std::unique_lock<std::mutex> lock(this->m_lock);
+  auto lock = std::unique_lock<std::mutex>(this->m_lock);
 
   OhmAssert(!this->m_recording,
             "Attempting to record to a command buffer without starting a "
@@ -342,7 +340,7 @@ auto CommandBuffer::copy(const Buffer& src, Image& dst, size_t) -> void {
             "Attempting to record to a command buffer without starting a "
             "record operation.");
 
-  auto function = [&](vk::CommandBuffer& cmd, size_t) {
+  auto function = [&src, &dst, &info, this](vk::CommandBuffer& cmd, size_t) {
     cmd.copyBufferToImage(src.buffer(), dst.image(), vk::ImageLayout::eGeneral,
                           1, &info, this->m_device->dispatch());
   };
@@ -374,7 +372,7 @@ auto CommandBuffer::copy(Image& src, Buffer& dst, size_t) -> void {
   info.setImageOffset(0);
   info.setImageSubresource(src.subresource());
 
-  auto function = [&](vk::CommandBuffer& cmd, size_t) {
+  auto function = [&src, &dst, &info, this](vk::CommandBuffer& cmd, size_t) {
     cmd.copyImageToBuffer(src.image(), vk::ImageLayout::eGeneral, dst.buffer(),
                           1, &info, this->m_device->dispatch());
   };
@@ -438,12 +436,12 @@ auto CommandBuffer::copy(Image& src, Image& dst, size_t) -> void {
   region.setSrcSubresource(src.subresource());
   region.setDstSubresource(dst.subresource());
 
-  std::unique_lock<std::mutex> lock(this->m_lock);
+  auto lock = std::unique_lock<std::mutex>(this->m_lock);
   OhmAssert(!this->m_recording,
             "Attempting to record to a command buffer without starting a "
             "record operation.");
 
-  auto function = [&](vk::CommandBuffer& cmd, size_t) {
+  auto function = [&src, &dst, &region, this](vk::CommandBuffer& cmd, size_t) {
     cmd.copyImage(src.image(), src.layout(), dst.image(), dst.layout(), 1,
                   &region, this->m_device->dispatch());
   };
@@ -478,14 +476,15 @@ auto CommandBuffer::bind(Descriptor& desc) -> void {
   const auto bind_point = pipeline.graphics() ? vk::PipelineBindPoint::eGraphics
                                               : vk::PipelineBindPoint::eCompute;
 
-  auto function = [&](vk::CommandBuffer& cmd, size_t) {
+  auto function = [&bind_point, &vk_pipe, &desc, &layout, &dispatch, this](
+                      vk::CommandBuffer& cmd, size_t) {
     cmd.bindPipeline(bind_point, vk_pipe, this->m_device->dispatch());
     if (desc.set())
       cmd.bindDescriptorSets(bind_point, layout, 0, 1, &desc.set(), 0, nullptr,
                              dispatch);
   };
 
-  std::unique_lock<std::mutex> lock(this->m_lock);
+  auto lock = std::unique_lock<std::mutex>(this->m_lock);
   OhmAssert(!this->m_recording,
             "Attempting to record to a command buffer without starting a "
             "record operation.");
@@ -524,12 +523,13 @@ auto CommandBuffer::blit(Image& src, Image& dst, Filter in_filter) -> void {
   auto src_old_layout = src.layout();
   auto dst_old_layout = dst.layout();
 
-  auto function = [&](vk::CommandBuffer& cmd, size_t) {
+  auto function = [&src, &dst, &blit, &filter, this](vk::CommandBuffer& cmd,
+                                                     size_t) {
     cmd.blitImage(src.image(), src.layout(), dst.image(), dst.layout(), 1,
                   &blit, filter, this->m_device->dispatch());
   };
 
-  std::unique_lock<std::mutex> lock(this->m_lock);
+  auto lock = std::unique_lock<std::mutex>(this->m_lock);
   OhmAssert(!this->m_recording,
             "Attempting to record to a command buffer without starting a "
             "record operation.");
@@ -563,14 +563,14 @@ auto CommandBuffer::combine(CommandBuffer& child) -> void {
   // Note, 2 locks here, but this is because we need to lock down both this
   // command buffer and the child's to ensure no 2 threads can alter them while
   // we're combnining them.
-  std::unique_lock<std::mutex> lock(this->m_lock);
-  std::unique_lock<std::mutex> lock2(child.m_lock);
+  auto lock = std::unique_lock<std::mutex>(this->m_lock);
+  auto lock2 = std::unique_lock<std::mutex>(child.m_lock);
   OhmAssert(!this->m_recording,
             "Attempting to combine child command buffers without recording "
             "the parent first.");
   child.end();
 
-  auto function = [&](vk::CommandBuffer& cmd, unsigned index) {
+  auto function = [&child, this](vk::CommandBuffer& cmd, unsigned index) {
     cmd.executeCommands(1, &child.m_cmd_buffers[index],
                         this->m_device->dispatch());
   };
@@ -586,12 +586,13 @@ auto CommandBuffer::cmd(unsigned index) -> vk::CommandBuffer {
 
 auto CommandBuffer::draw(const Buffer& vertices, unsigned instance_count)
     -> void {
-  std::unique_lock<std::mutex> lock(this->m_lock);
+  auto lock = std::unique_lock<std::mutex>(this->m_lock);
 
   const auto& offset = vertices.memory().offset;
   const auto& buffer = vertices.buffer();
 
-  auto function = [&](vk::CommandBuffer& cmd, size_t) {
+  auto function = [&buffer, &offset, this, &instance_count, &vertices](
+                      vk::CommandBuffer& cmd, size_t) {
     cmd.bindVertexBuffers(0, 1, &buffer, &offset, this->m_device->dispatch());
     cmd.draw(vertices.count(), instance_count, 0, 0,
              this->m_device->dispatch());
@@ -606,12 +607,13 @@ auto CommandBuffer::draw(const Buffer& vertices, unsigned instance_count)
 
 auto CommandBuffer::draw(const Buffer& indices, const Buffer& vertices,
                          unsigned instance_count) -> void {
-  std::unique_lock<std::mutex> lock(this->m_lock);
+  auto lock = std::unique_lock<std::mutex>(this->m_lock);
   const auto& vertex_offset = vertices.memory().offset;
   const auto& vertex_buffer = vertices.buffer();
   const auto& index_buffer = indices.buffer();
 
-  auto function = [&](vk::CommandBuffer& cmd, size_t) {
+  auto function = [&vertex_buffer, &instance_count, &indices, &index_buffer,
+                   &vertex_offset, this](vk::CommandBuffer& cmd, size_t) {
     cmd.bindVertexBuffers(0, 1, &vertex_buffer, &vertex_offset,
                           this->m_device->dispatch());
     cmd.bindIndexBuffer(index_buffer, 0, vk::IndexType::eUint32,
@@ -631,9 +633,9 @@ auto CommandBuffer::draw(const Buffer& indices, const Buffer& vertices,
 }
 
 auto CommandBuffer::dispatch(unsigned x, unsigned y, unsigned z) -> void {
-  std::unique_lock<std::mutex> lock(this->m_lock);
+  auto lock = std::unique_lock<std::mutex>(this->m_lock);
 
-  auto function = [&](vk::CommandBuffer& cmd, size_t) {
+  auto function = [&x, &y, &z, this](vk::CommandBuffer& cmd, size_t) {
     cmd.dispatch(x, y, z, this->m_device->dispatch());
   };
 
@@ -701,7 +703,7 @@ auto CommandBuffer::transition(Image& image, vk::ImageLayout layout) -> void {
 
 auto CommandBuffer::synchronize() -> void {
   // Lock this command buffer access.
-  std::unique_lock<std::mutex> lock1(this->m_lock);
+  auto lock1 = std::unique_lock<std::mutex>(this->m_lock);
   this->unsafe_synchronize();
 }
 
@@ -709,7 +711,7 @@ auto CommandBuffer::submit() -> void {
   auto info = vk::SubmitInfo();
 
   if (!this->m_dirty) return;
-  std::unique_lock<std::mutex> lock(this->m_lock);
+  auto lock = std::unique_lock<std::mutex>(this->m_lock);
 
   auto vector = std::vector<vk::Semaphore>();
   auto masks = std::vector<vk::PipelineStageFlags>();
@@ -746,7 +748,7 @@ auto CommandBuffer::submit() -> void {
 
   auto fence = this->m_sync_info[this->m_current_id].fence;
 
-  std::unique_lock<std::mutex> queue_lock(this->m_queue->lock);
+  auto queue_lock = std::unique_lock<std::mutex>(this->m_queue->lock);
   error(
       this->m_queue->queue.submit(1, &info, fence, this->m_device->dispatch()));
 

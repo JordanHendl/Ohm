@@ -27,10 +27,10 @@ Swapchain::Swapchain(Device& device, vk::SurfaceKHR surface, bool vsync) {
   this->make_swapchain();
   this->gen_images();
 
-  this->m_fences.resize(this->textures().size());
-  this->m_image_available.resize(this->textures().size());
-  this->m_present_done.resize(this->textures().size());
-  this->m_fences_in_flight.resize(this->textures().size());
+  this->m_fences.resize(this->images().size());
+  this->m_image_available.resize(this->images().size());
+  this->m_present_done.resize(this->images().size());
+  this->m_fences_in_flight.resize(this->images().size());
 
   auto gpu = device.device();
   auto& dispatch = device.dispatch();
@@ -56,10 +56,9 @@ Swapchain::~Swapchain() {
 
     gpu.destroy(this->m_swapchain, alloc_cb, dispatch);
     this->m_swapchain = nullptr;
-    
-    for(auto& fence : this->m_fences) {
-      error(gpu.waitForFences(1, &fence, true, UINT64_MAX,
-                                     dispatch));
+
+    for (auto& fence : this->m_fences) {
+      error(gpu.waitForFences(1, &fence, true, UINT64_MAX, dispatch));
       gpu.destroy(fence, alloc_cb, dispatch);
     }
     for (auto& sem : this->m_image_available)
@@ -167,7 +166,7 @@ auto Swapchain::gen_images() -> void {
       this->m_images.push_back(index);
       index++;
     }
-    if(index >= images.size()) return;
+    if (index >= images.size()) return;
   }
 }
 
@@ -242,19 +241,19 @@ auto Swapchain::present() -> bool {
       dep->submit();
       if (!dep->present(*this)) {
         this->m_current_frame =
-            (this->m_current_frame + 1) % this->textures().size();
+            (this->m_current_frame + 1) % this->images().size();
         return false;
       }
 
       this->m_current_frame =
-          (this->m_current_frame + 1) % this->textures().size();
+          (this->m_current_frame + 1) % this->images().size();
       this->m_acquired.pop();
       return this->acquire();
     }
   } else {
     if (this->m_dependency) this->m_dependency->end();
     this->m_current_frame =
-        (this->m_current_frame + 1) % this->textures().size();
+        (this->m_current_frame + 1) % this->images().size();
     this->m_acquired.pop();
   }
 

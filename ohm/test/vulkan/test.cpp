@@ -184,6 +184,26 @@ auto test_binding() -> bool {
   return descriptor.handle() >= 0;
 }
 }  // namespace descriptor
+namespace window {
+auto test_creation() -> bool {
+  auto window = Window<API>(0, {});
+  return window.handle() >= 0;
+}
+
+auto test_images_size() -> bool {
+  auto window = Window<API>(0, {});
+  return !window.images().empty();
+}
+
+auto test_images_params() -> bool {
+  auto window = Window<API>(0, {"lmao", 1280, 1024});
+  for(auto& img : window.images()) {
+    if(img.width() != 1280) return false;
+    if(img.height() != 1024) return false;
+  }
+  return true;
+}
+}  // namespace window
 namespace commands {
 auto test_creation() -> bool {
   auto commands = Commands<API>(0);
@@ -272,6 +292,7 @@ auto test_gpu_array_copy() -> bool {
 
   return true;
 }
+
 auto test_array_to_image_copy() -> bool {
   auto array = Array<API, unsigned char>(0, 1280 * 1024 * 4);
   auto image = Image<API>(0, {1280, 1024});
@@ -294,12 +315,6 @@ auto test_image_copy() -> bool {
   return true;
 }
 }  // namespace commands
-namespace window {
-auto test_creation() -> bool {
-  auto window = Window<API>(0, {});
-  return window.handle() >= 0;
-}
-}  // namespace window
 }  // namespace ohm
 
 TEST(Vulkan, System) {
@@ -339,8 +354,10 @@ TEST(Vulkan, Descriptor) {
   EXPECT_TRUE(ohm::descriptor::test_binding());
 }
 
-TEST(Vulkan, Window) {
-  EXPECT_TRUE(ohm::window::test_creation());
+TEST(Vulkan, Window) { 
+  EXPECT_TRUE(ohm::window::test_creation()); 
+  EXPECT_TRUE(ohm::window::test_images_size()); 
+  EXPECT_TRUE(ohm::window::test_images_params()); 
 }
 
 TEST(Vulkan, Commands) {
@@ -352,9 +369,9 @@ TEST(Vulkan, Commands) {
 }
 
 auto main(int argc, char* argv[]) -> int {
-    ohm::System<ohm::API>::setDebugParameter("VK_LAYER_KHRONOS_validation");
-    ohm::System<ohm::API>::setDebugParameter(
-        "VK_LAYER_LUNARG_standard_validation");
+  ohm::System<ohm::API>::setDebugParameter("VK_LAYER_KHRONOS_validation");
+  ohm::System<ohm::API>::setDebugParameter(
+      "VK_LAYER_LUNARG_standard_validation");
   ohm::System<ohm::API>::initialize();
   testing::InitGoogleTest(&argc, argv);
   auto success = RUN_ALL_TESTS();

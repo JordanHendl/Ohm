@@ -19,7 +19,31 @@ struct WindowInfo {
   bool shown;
   bool capture_mouse;
   bool vsync;
-
+  
+  WindowInfo(std::string_view name, size_t width = 1280, size_t height = 1024) {
+    this->title = name;
+    this->width = width;
+    this->height = height;
+    this->borderless = false;
+    this->fullscreen = false;
+    this->resizable = false;
+    this->shown = true;
+    this->capture_mouse = false;
+    this->vsync = false;
+  }
+  
+  WindowInfo(size_t width, size_t height) {
+    this->title = "Window";
+    this->width = width;
+    this->height = height;
+    this->borderless = false;
+    this->fullscreen = false;
+    this->resizable = false;
+    this->shown = true;
+    this->capture_mouse = false;
+    this->vsync = false;
+  }
+  
   WindowInfo() {
     this->title = "Window";
     this->width = 1280;
@@ -70,6 +94,8 @@ Window<API>::Window(int gpu, WindowInfo info) {
   auto index = 0u;
   for (auto& img : this->m_images) {
     img.m_handle = API::Window::image(this->m_handle, index++);
+    img.m_info.width = info.width;
+    img.m_info.height = info.height;
   }
 }
 

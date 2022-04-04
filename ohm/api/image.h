@@ -76,10 +76,10 @@ class Image {
   Image(Image&& mv);
   ~Image();
   auto operator=(Image&& mv) -> Image&;
-  auto info() -> ImageInfo;
-  auto width() -> size_t;
-  auto height() -> size_t;
-  auto layers() -> size_t;
+  auto info() const -> ImageInfo;
+  auto width() const -> size_t;
+  auto height() const -> size_t;
+  auto layers() const -> size_t;
   auto gpu() const -> int;
   auto handle() const -> int32_t;
   auto layer(size_t index) -> Image<API, Allocator>;
@@ -137,7 +137,7 @@ auto Image<API, Allocator>::operator=(Image<API, Allocator>&& mv)
 }
 
 template <typename API, typename Allocator>
-auto Image<API, Allocator>::info() -> ImageInfo {
+auto Image<API, Allocator>::info() const -> ImageInfo {
   return this->m_info;
 }
 
@@ -147,17 +147,17 @@ auto Image<API, Allocator>::gpu() const -> int {
 }
 
 template <typename API, typename Allocator>
-auto Image<API, Allocator>::width() -> size_t {
+auto Image<API, Allocator>::width() const -> size_t {
   return this->m_info.width;
 }
 
 template <typename API, typename Allocator>
-auto Image<API, Allocator>::height() -> size_t {
+auto Image<API, Allocator>::height() const -> size_t {
   return this->m_info.height;
 }
 
 template <typename API, typename Allocator>
-auto Image<API, Allocator>::layers() -> size_t {
+auto Image<API, Allocator>::layers() const -> size_t {
   return this->m_info.layers;
 }
 

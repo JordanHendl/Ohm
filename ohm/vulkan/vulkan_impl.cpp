@@ -542,19 +542,51 @@ auto Vulkan::Window::destroy(int32_t handle) Ohm_NOEXCEPT -> void {
   tmp2 = std::move(val2);
 }
 
-auto Vulkan::Window::count(int32_t handle) Ohm_NOEXCEPT -> size_t { return 0; }
+auto Vulkan::Window::count(int32_t handle) Ohm_NOEXCEPT -> size_t { 
+  OhmAssert(handle < 0, "Accessing invalid handle!");
+  auto& swapchain = ovk::system().swapchain[handle];
+  OhmAssert(!swapchain.initialized(), "Accessing invalid swapchain!");
+  return swapchain.images().size();
+}
 
 auto Vulkan::Window::image(int32_t handle, size_t index) Ohm_NOEXCEPT
     -> int32_t {
-  return -1;
+  OhmAssert(handle < 0, "Accessing invalid handle!");
+  auto& swapchain = ovk::system().swapchain[handle];
+  OhmAssert(!swapchain.initialized(), "Accessing invalid swapchain!");
+  return swapchain.images()[index];
 }
 
 auto Vulkan::Window::update(int32_t handle, const WindowInfo& info) Ohm_NOEXCEPT
-    -> void {}
+    -> void {
+  OhmAssert(handle < 0, "Accessing invalid handle!");
+  auto& window = ovk::system().window[handle];
+  OhmAssert(!window.initialized(), "Accessing invalid window!");
+  window.update(info);
+}
 
-auto Vulkan::Window::wait(int32_t handle, int32_t cmd) Ohm_NOEXCEPT -> void {}
+auto Vulkan::Window::wait(int32_t handle, int32_t cmd) Ohm_NOEXCEPT -> void {
+  OhmAssert(handle < 0, "Accessing invalid handle!");
+  OhmAssert(cmd < 0, "Accessing invalid handle!");
+  auto& swapchain = ovk::system().swapchain[handle];
+  auto& buf       = ovk::system().commands[cmd];
+  OhmAssert(!swapchain.initialized(), "Accessing invalid window!");
+  swapchain.wait(buf);  
+}
 
-auto Vulkan::Window::present(int32_t handle) Ohm_NOEXCEPT -> void {}
+auto Vulkan::Window::present(int32_t handle) Ohm_NOEXCEPT -> void {
+  OhmAssert(handle < 0, "Accessing invalid handle!");
+  auto& swapchain = ovk::system().swapchain[handle];
+  OhmAssert(!swapchain.initialized(), "Accessing invalid swapchain!");
+  if(!swapchain.present()) {
+    auto& device = swapchain.device();
+    auto surface = swapchain.surface();
+    auto vsync = swapchain.vsync();
+    
+    auto tmp = std::move(swapchain);
+    swapchain = std::move(ovk::Swapchain(device, surface, vsync));
+  }
+}
 
 auto Vulkan::Window::poll(int32_t handle) Ohm_NOEXCEPT -> void {}
 }  // namespace v1
