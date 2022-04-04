@@ -516,6 +516,7 @@ auto Vulkan::Window::create(int gpu, const WindowInfo& info) Ohm_NOEXCEPT
       // we have to create both here.
       auto& swap = ovk::system().swapchain[index];
       window = std::move(ovk::Window(info));
+      device.checkSupport(window.surface());
       swap = std::move(ovk::Swapchain(device, window.surface(), info.vsync));
       return index;
     }

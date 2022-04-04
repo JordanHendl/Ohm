@@ -29,4 +29,7 @@ install( TARGETS vulkan EXPORT ohm COMPONENT release
          RUNTIME  DESTINATION ${EXPORT_LIB_DIR}
          LIBRARY  DESTINATION ${EXPORT_LIB_DIR}
          INCLUDES DESTINATION ${EXPORT_INCLUDE_DIR} )
+else()
+message("-- Couldn't find vulkan development libraries, skipping vulkan implementation build.")
 endif()
+

@@ -339,6 +339,10 @@ TEST(Vulkan, Descriptor) {
   EXPECT_TRUE(ohm::descriptor::test_binding());
 }
 
+TEST(Vulkan, Window) {
+  EXPECT_TRUE(ohm::window::test_creation());
+}
+
 TEST(Vulkan, Commands) {
   EXPECT_TRUE(ohm::commands::test_creation());
   EXPECT_TRUE(ohm::commands::test_host_to_array_copy());
@@ -348,9 +352,9 @@ TEST(Vulkan, Commands) {
 }
 
 auto main(int argc, char* argv[]) -> int {
-  //  ohm::System<ohm::API>::setDebugParameter("VK_LAYER_KHRONOS_validation");
-  //  ohm::System<ohm::API>::setDebugParameter(
-  //      "VK_LAYER_LUNARG_standard_validation");
+    ohm::System<ohm::API>::setDebugParameter("VK_LAYER_KHRONOS_validation");
+    ohm::System<ohm::API>::setDebugParameter(
+        "VK_LAYER_LUNARG_standard_validation");
   ohm::System<ohm::API>::initialize();
   testing::InitGoogleTest(&argc, argv);
   auto success = RUN_ALL_TESTS();

@@ -56,12 +56,20 @@ Swapchain::~Swapchain() {
 
     gpu.destroy(this->m_swapchain, alloc_cb, dispatch);
     this->m_swapchain = nullptr;
-
+    
+    for(auto& fence : this->m_fences) {
+      error(gpu.waitForFences(1, &fence, true, UINT64_MAX,
+                                     dispatch));
+      gpu.destroy(fence, alloc_cb, dispatch);
+    }
     for (auto& sem : this->m_image_available)
       gpu.destroy(sem, alloc_cb, dispatch);
     for (auto& sem : this->m_present_done) gpu.destroy(sem, alloc_cb, dispatch);
 
     this->m_images.clear();
+    this->m_fences.clear();
+    this->m_image_available.clear();
+    this->m_present_done.clear();
   }
 }
 
@@ -152,13 +160,14 @@ auto Swapchain::gen_images() -> void {
   auto images = error(gpu.getSwapchainImagesKHR(this->m_swapchain, dispatch));
 
   this->m_images.reserve(images.size());
-  auto index = 0;
+  auto index = 0u;
   for (auto& img : ovk::system().image) {
     if (!img.initialized()) {
       img = std::move(ovk::Image(this->device(), info, images[index]));
       this->m_images.push_back(index);
+      index++;
     }
-    index++;
+    if(index >= images.size()) return;
   }
 }
 
