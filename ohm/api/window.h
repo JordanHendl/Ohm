@@ -20,7 +20,8 @@ struct WindowInfo {
   bool capture_mouse;
   bool vsync;
 
-  WindowInfo(std::string_view name, size_t width = 1280, size_t height = 1024, bool resizable = false) {
+  WindowInfo(std::string_view name, size_t width = 1280, size_t height = 1024,
+             bool resizable = false) {
     this->title = name;
     this->width = width;
     this->height = height;
@@ -107,7 +108,7 @@ template <typename API>
 Window<API>::~Window() {
   if (this->m_handle >= 0) {
     API::Window::destroy(this->m_handle);
-    for(auto& img : this->m_images) {
+    for (auto& img : this->m_images) {
       img.m_handle = -1;
     }
     this->m_gpu = -1;
@@ -172,12 +173,12 @@ auto Window<API>::wait(const Commands<API>& cmds) -> void {
 
 template <typename API>
 auto Window<API>::present() -> bool {
-  if(!API::Window::present(this->m_handle)) {
+  if (!API::Window::present(this->m_handle)) {
     auto index = 0u;
     for (auto& img : this->m_images) {
       img.m_handle = API::Window::image(this->m_handle, index++);
     }
-    
+
     return false;
   }
   return true;

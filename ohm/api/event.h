@@ -144,50 +144,38 @@ class EventRegister {
   ~EventRegister();
   inline auto add(std::function<void(const Event&)> callback) -> void;
   inline auto reset() -> void;
+
  private:
   int32_t m_handle;
 };
 
-Event::Event( Event::Type type, Key key )
-{
-  this->event_type = type ;
-  this->event_key  = key  ;
+Event::Event(Event::Type type, Key key) {
+  this->event_type = type;
+  this->event_key = key;
 }
 
-Event::Event( Event::Type type, MouseButton button )
-{
-  this->event_type   = type   ;
-  this->event_button = button ;
+Event::Event(Event::Type type, MouseButton button) {
+  this->event_type = type;
+  this->event_button = button;
 }
 
-Event::Event()
-{
-  this->event_type   = Event::Type::None ;
-  this->event_button = MouseButton::None ;
-  this->event_key    = Key::None         ;
+Event::Event() {
+  this->event_type = Event::Type::None;
+  this->event_button = MouseButton::None;
+  this->event_key = Key::None;
 }
 
-Event::Event( const Event& event )
-{
-  this->event_key  = event.event_key  ;
-  this->event_type = event.event_type ;
+Event::Event(const Event& event) {
+  this->event_key = event.event_key;
+  this->event_type = event.event_type;
 }
 
-auto Event::button() const -> MouseButton
-{
-  return this->event_button ;
-}
+auto Event::button() const -> MouseButton { return this->event_button; }
 
-auto Event::type() const -> Event::Type
-{
-  return this->event_type ;
-}
+auto Event::type() const -> Event::Type { return this->event_type; }
 
-auto Event::key() const -> Key
-{
-  return this->event_key ;
-}
-  
+auto Event::key() const -> Key { return this->event_key; }
+
 template <typename API>
 EventRegister<API>::EventRegister() {
   this->m_handle = API::Event::create();
@@ -210,7 +198,7 @@ auto EventRegister<API>::reset() -> void {
   this->m_handle = API::Event::create();
 }
 
-template<typename API>
+template <typename API>
 static auto poll_events() -> void {
   API::Event::poll();
 }

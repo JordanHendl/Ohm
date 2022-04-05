@@ -9,12 +9,12 @@
 #include "ohm/vulkan/impl/command_buffer.h"
 #include "ohm/vulkan/impl/descriptor.h"
 #include "ohm/vulkan/impl/device.h"
+#include "ohm/vulkan/impl/event.h"
 #include "ohm/vulkan/impl/image.h"
 #include "ohm/vulkan/impl/instance.h"
 #include "ohm/vulkan/impl/memory.h"
 #include "ohm/vulkan/impl/pipeline.h"
 #include "ohm/vulkan/impl/swapchain.h"
-#include "ohm/vulkan/impl/event.h"
 #include "ohm/vulkan/impl/window.h"
 namespace ohm {
 namespace ovk {
@@ -40,7 +40,7 @@ struct System {
   vk::AllocationCallbacks* allocate_cb;
 
   std::unordered_map<int32_t, std::shared_ptr<Event>> event;
-  
+
   auto shutdown() -> void {
     for (auto& thing : this->swapchain) {
       auto tmp = std::move(thing);

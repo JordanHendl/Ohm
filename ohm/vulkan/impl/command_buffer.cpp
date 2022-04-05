@@ -696,7 +696,7 @@ auto CommandBuffer::depended() const -> bool { return this->m_depended; }
 auto CommandBuffer::setDepended(bool flag) -> void { this->m_depended = flag; }
 
 auto CommandBuffer::transition_single(Image& texture, vk::CommandBuffer cmd,
-                                     vk::ImageLayout layout) -> void {
+                                      vk::ImageLayout layout) -> void {
   auto range = vk::ImageSubresourceRange();
   auto src = vk::PipelineStageFlags();
   auto dst = vk::PipelineStageFlags();

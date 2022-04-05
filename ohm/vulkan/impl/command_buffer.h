@@ -65,7 +65,7 @@ class CommandBuffer {
   //          auto transition( Image& texture, Layout layout ) -> void ;
   auto transition(Image& texture, vk::ImageLayout layout) -> void;
   auto transition_single(Image& texture, vk::CommandBuffer cmd,
-                        vk::ImageLayout layout) -> void;
+                         vk::ImageLayout layout) -> void;
   auto synchronize() -> void;
   auto submit() -> void;
   auto present(Swapchain& swapchain) -> bool;

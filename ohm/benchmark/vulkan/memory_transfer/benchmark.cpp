@@ -45,7 +45,7 @@ auto bench_gpu_to_gpu_transfer(benchmark::State& state) {
   static auto gpu_array_2 = PooledArray(0, memory_size, ohm::HeapType::GpuOnly);
   static auto cmds = ohm::Commands<API>(0);
   static auto init = false;
-  if(!init) {
+  if (!init) {
     cmds.begin();
     cmds.copy(gpu_array_1, gpu_array_2);
     init = true;
@@ -63,7 +63,7 @@ auto bench_gpu_to_gpu_transfer_synced(benchmark::State& state) {
   static auto gpu_array_2 = PooledArray(0, memory_size, ohm::HeapType::GpuOnly);
   static auto cmds = ohm::Commands<API>(0);
   static auto init = false;
-  if(!init) {
+  if (!init) {
     cmds.begin();
     cmds.copy(gpu_array_1, gpu_array_2);
     init = true;
@@ -81,7 +81,7 @@ auto bench_gpu_to_gpu_transfer_image(benchmark::State& state) {
   static auto image_2 = ohm::Image<API>(0, info);
   static auto cmds = ohm::Commands<API>(0);
   static auto init = false;
-  if(!init) {
+  if (!init) {
     cmds.begin();
     cmds.copy(image_1, image_2);
     init = true;
@@ -97,7 +97,7 @@ auto bench_gpu_to_gpu_transfer_image_synced(benchmark::State& state) {
   static auto image_2 = ohm::Image<API>(0, info);
   static auto cmds = ohm::Commands<API>(0);
   static auto init = false;
-  if(!init) {
+  if (!init) {
     cmds.begin();
     cmds.copy(image_1, image_2);
     init = true;
@@ -112,7 +112,9 @@ auto bench_gpu_to_gpu_transfer_image_synced(benchmark::State& state) {
 BENCHMARK(bench_cpu_to_cpu_transfer)->RangeMultiplier(4)->Range(1024, 524288);
 BENCHMARK(bench_cpu_to_gpu_transfer)->RangeMultiplier(4)->Range(1024, 524288);
 BENCHMARK(bench_gpu_to_gpu_transfer)->RangeMultiplier(4)->Range(1024, 524288);
-BENCHMARK(bench_gpu_to_gpu_transfer_synced)->RangeMultiplier(4)->Range(1024, 524288);
+BENCHMARK(bench_gpu_to_gpu_transfer_synced)
+    ->RangeMultiplier(4)
+    ->Range(1024, 524288);
 BENCHMARK(bench_gpu_to_gpu_transfer_image);
 BENCHMARK(bench_gpu_to_gpu_transfer_image_synced);
 

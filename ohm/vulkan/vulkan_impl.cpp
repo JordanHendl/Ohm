@@ -5,14 +5,14 @@
 #define VULKAN_HPP_NO_EXCEPTIONS
 
 #include "ohm/vulkan/vulkan_impl.h"
+#include <SDL.h>
+#include <atomic>
 #include "impl/swapchain.h"
 #include "ohm/api/exception.h"
 #include "ohm/api/memory.h"
 #include "ohm/api/system.h"
-#include "ohm/vulkan/impl/system.h"
 #include "ohm/vulkan/impl/error.h"
-#include <atomic>
-#include <SDL.h>
+#include "ohm/vulkan/impl/system.h"
 #ifdef __linux__
 #include <stdlib.h>
 #include <unistd.h>
@@ -436,8 +436,9 @@ auto Vulkan::Commands::blit_to_image(int32_t handle, int32_t src, int32_t dst,
 }
 
 auto Vulkan::Commands::blit_from_renderpass(int32_t handle, int32_t src,
-                                            int32_t dst, Filter filter)
-    Ohm_NOEXCEPT -> void {}
+                                            int32_t dst,
+                                            Filter filter) Ohm_NOEXCEPT
+    -> void {}
 
 auto Vulkan::Commands::submit(int32_t handle) Ohm_NOEXCEPT -> void {
   OhmAssert(handle < 0, "Attempting to use an invalid commands handle.");
@@ -569,7 +570,7 @@ auto Vulkan::Descriptor::bind_images(int32_t handle, std::string_view name,
 
 auto Vulkan::Event::create() Ohm_NOEXCEPT -> int32_t {
   static auto id = std::atomic<int32_t>{0};
-  
+
   auto handle = id++;
   ovk::system().event[handle] = std::make_shared<ovk::Event>();
   return handle;
@@ -577,12 +578,12 @@ auto Vulkan::Event::create() Ohm_NOEXCEPT -> int32_t {
 
 auto Vulkan::Event::destroy(int32_t handle) Ohm_NOEXCEPT -> void {
   auto iter = ovk::system().event.find(handle);
-  
-  if(iter != ovk::system().event.end())
-    ovk::system().event.erase(handle);
+
+  if (iter != ovk::system().event.end()) ovk::system().event.erase(handle);
 }
 
-auto Vulkan::Event::add(int32_t handle, std::function<void(const ohm::Event&)> cb) -> void {
+auto Vulkan::Event::add(int32_t handle,
+                        std::function<void(const ohm::Event&)> cb) -> void {
   auto event = ovk::system().event[handle];
   event->add(cb);
 }
@@ -590,12 +591,12 @@ auto Vulkan::Event::add(int32_t handle, std::function<void(const ohm::Event&)> c
 auto Vulkan::Event::poll() -> void {
   auto event = SDL_Event();
   while (SDL_PollEvent(&event) != 0) {
-    for(auto& ev : ovk::system().event) {
+    for (auto& ev : ovk::system().event) {
       ev.second->push(event);
     }
   }
 }
-    
+
 auto Vulkan::Window::create(int gpu, const WindowInfo& info) Ohm_NOEXCEPT
     -> int32_t {
   auto& device = ovk::system().devices[gpu];
@@ -675,12 +676,9 @@ auto Vulkan::Window::present(int32_t handle) Ohm_NOEXCEPT -> bool {
     auto dep = swapchain.dependency();
     dep->setDepended(false);
     ovk::error(device->device().waitIdle(device->dispatch()));
-    {
-      auto tmp = std::move(swapchain);
-    }
+    { auto tmp = std::move(swapchain); }
     swapchain = std::move(ovk::Swapchain(*device, surface, vsync));
-    if(dep)
-      swapchain.wait(*dep);
+    if (dep) swapchain.wait(*dep);
     return false;
   }
   return true;

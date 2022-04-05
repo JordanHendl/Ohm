@@ -121,7 +121,8 @@ struct Vulkan {
   struct Event {
     static auto create() Ohm_NOEXCEPT -> int32_t;
     static auto destroy(int32_t handle) Ohm_NOEXCEPT -> void;
-    static auto add(int32_t handle, std::function<void(const ohm::Event&)> cb) -> void;
+    static auto add(int32_t handle, std::function<void(const ohm::Event&)> cb)
+        -> void;
     static auto poll() -> void;
   };
 

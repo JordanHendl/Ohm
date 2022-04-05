@@ -64,10 +64,10 @@ Swapchain::~Swapchain() {
     for (auto& sem : this->m_image_available)
       gpu.destroy(sem, alloc_cb, dispatch);
     for (auto& sem : this->m_present_done) gpu.destroy(sem, alloc_cb, dispatch);
-    
-    for(auto& img : this->m_images)
+
+    for (auto& img : this->m_images)
       auto tmp = std::move(ovk::system().image[img]);
-    
+
     this->m_images.clear();
     this->m_fences.clear();
     this->m_image_available.clear();

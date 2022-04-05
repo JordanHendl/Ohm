@@ -42,7 +42,7 @@ static auto running = true;
 namespace ohm {
 using API = ohm::Vulkan;
 auto callback(const Event& event) {
-  if(event.type() == Event::Type::WindowExit) {
+  if (event.type() == Event::Type::WindowExit) {
     running = false;
   }
 }
@@ -67,7 +67,7 @@ auto test() -> bool {
   cb.add(&callback);
   while (running) {
     poll_events<API>();
-    if(!window.present()) {
+    if (!window.present()) {
       cmd.begin();
       cmd.blit(image, window);
     }
