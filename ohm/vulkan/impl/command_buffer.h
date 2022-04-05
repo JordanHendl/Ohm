@@ -58,14 +58,14 @@ class CommandBuffer {
   auto draw(const Buffer& vertices, unsigned instance_count = 1) -> void;
   auto draw(const Buffer& indices, const Buffer& vertices,
             unsigned instance_count = 1) -> void;
-  auto dispatch(unsigned x, unsigned y, unsigned z = 1) -> void;
+  auto dispatch(size_t x, size_t y, size_t z = 1) -> void;
   auto depended() const -> bool;
   auto setDepended(bool flag) -> void;
   auto end() -> void;
   //          auto transition( Image& texture, Layout layout ) -> void ;
   auto transition(Image& texture, vk::ImageLayout layout) -> void;
-  //        auto transitionSingle( Image& texture, vk::CommandBuffer cmd,
-  //        vk::ImageLayout layout ) -> void ;
+  auto transition_single(Image& texture, vk::CommandBuffer cmd,
+                        vk::ImageLayout layout) -> void;
   auto synchronize() -> void;
   auto submit() -> void;
   auto present(Swapchain& swapchain) -> bool;

@@ -1,5 +1,6 @@
 #pragma once
 #include "array.h"
+#include "descriptor.h"
 #include "image.h"
 namespace ohm {
 
@@ -32,8 +33,13 @@ class Commands {
   template <typename Allocator>
   auto attach(const RenderPass<API, Allocator>& pass) -> void;
 
-  template <typename Type1, typename Type2>
-  auto blit(const Type1& src, Type2& dst, Filter filter) -> void;
+  template <typename Allocator>
+  auto blit(const Image<API, Allocator>& src, Window<API>& dst,
+            Filter filter = Filter::Nearest) -> void;
+
+  template <typename Allocator>
+  auto blit(const Image<API, Allocator>& src, Image<API, Allocator>& dst,
+            Filter filter = Filter::Nearest) -> void;
 
   template <typename Type, typename Allocator>
   auto copy(const Array<API, Type, Allocator>& src, Image<API, Allocator>& dst,
@@ -124,10 +130,20 @@ auto Commands<API, Queue>::attach(const RenderPass<API, Allocator>& pass)
     -> void {}
 
 template <typename API, QueueType Queue>
-template <typename Type1, typename Type2>
-auto Commands<API, Queue>::blit(const Type1& src, Type2& dst, Filter filter)
+template <typename Allocator>
+auto Commands<API, Queue>::blit(const Image<API, Allocator>& src,
+                                Window<API>& dst, Filter filter) -> void {
+  API::Commands::blit_to_window(this->m_handle, src.handle(), dst.handle(),
+                                filter);
+}
+
+template <typename API, QueueType Queue>
+template <typename Allocator>
+auto Commands<API, Queue>::blit(const Image<API, Allocator>& src,
+                                Image<API, Allocator>& dst, Filter filter)
     -> void {
-  API::Commands::blit(this->m_handle, src, dst, filter);
+  API::Commands::blit_to_image(this->m_handle, src.handle(), dst.handle(),
+                               filter);
 }
 
 template <typename API, QueueType Queue>
@@ -225,7 +241,9 @@ auto Commands<API, Queue>::gpu() const -> int {
 }
 
 template <typename API, QueueType Queue>
-auto Commands<API, Queue>::bind(const Descriptor<API>& desc) {}
+auto Commands<API, Queue>::bind(const Descriptor<API>& desc) {
+  API::Commands::bind(this->m_handle, desc.handle());
+}
 
 template <typename API, QueueType Queue>
 auto Commands<API, Queue>::handle() const -> int32_t {

@@ -19,7 +19,7 @@ struct WindowInfo {
   bool shown;
   bool capture_mouse;
   bool vsync;
-  
+
   WindowInfo(std::string_view name, size_t width = 1280, size_t height = 1024) {
     this->title = name;
     this->width = width;
@@ -31,7 +31,7 @@ struct WindowInfo {
     this->capture_mouse = false;
     this->vsync = false;
   }
-  
+
   WindowInfo(size_t width, size_t height) {
     this->title = "Window";
     this->width = width;
@@ -43,7 +43,7 @@ struct WindowInfo {
     this->capture_mouse = false;
     this->vsync = false;
   }
-  
+
   WindowInfo() {
     this->title = "Window";
     this->width = 1280;
@@ -75,7 +75,6 @@ class Window {
   auto wait(const Commands<API>& cmds) -> void;
   auto handle() const -> int32_t;
   auto present() -> void;
-  auto poll() -> void;
 
  private:
   int m_gpu;
@@ -176,10 +175,5 @@ auto Window<API>::present() -> void {
 template <typename API>
 auto Window<API>::handle() const -> int32_t {
   return this->m_handle;
-}
-
-template <typename API>
-auto Window<API>::poll() -> void {
-  API::Window::poll(this->m_handle);
 }
 }  // namespace ohm

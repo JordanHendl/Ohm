@@ -63,6 +63,7 @@ struct Vulkan {
     static auto create(int gpu, QueueType type) Ohm_NOEXCEPT -> int32_t;
     static auto destroy(int32_t handle) Ohm_NOEXCEPT -> void;
     static auto begin(int32_t handle) Ohm_NOEXCEPT -> void;
+    static auto bind(int32_t handle, int32_t desc) Ohm_NOEXCEPT -> void;
     static auto copy_to_image(int32_t handle, int32_t src, int32_t dst,
                               size_t count) Ohm_NOEXCEPT -> void;
     static auto copy_image(int32_t handle, int32_t src, int32_t dst,
@@ -73,7 +74,15 @@ struct Vulkan {
                            size_t count) Ohm_NOEXCEPT -> void;
     static auto copy_array(int32_t handle, const void* src, int32_t dst,
                            size_t count) Ohm_NOEXCEPT -> void;
+    static auto dispatch(int32_t handle, size_t x, size_t y,
+                         size_t z) Ohm_NOEXCEPT -> void;
     static auto submit(int32_t handle) Ohm_NOEXCEPT -> void;
+    static auto blit_to_window(int32_t handle, int32_t src, int32_t dst,
+                               Filter filter) -> Ohm_NOEXCEPT void;
+    static auto blit_to_image(int32_t handle, int32_t src, int32_t dst,
+                              Filter filter) -> Ohm_NOEXCEPT void;
+    static auto blit_from_renderpass(int32_t handle, int32_t src, int32_t dst,
+                                     Filter filter) -> Ohm_NOEXCEPT void;
     static auto synchronize(int32_t handle) Ohm_NOEXCEPT -> void;
   };
 
@@ -107,6 +116,15 @@ struct Vulkan {
                             const std::vector<int32_t>& images) -> void;
   };
 
+  /** Event-related function API
+   */
+  struct Event {
+    static auto create() Ohm_NOEXCEPT -> int32_t;
+    static auto destroy(int32_t handle) Ohm_NOEXCEPT -> void;
+    static auto add(int32_t handle, std::function<void(const ohm::Event&)> cb) -> void;
+    static auto poll() -> void;
+  };
+
   /** Window-related function API
    */
   struct Window {
@@ -117,7 +135,6 @@ struct Vulkan {
         -> void;
     static auto wait(int32_t handle, int32_t cmd) Ohm_NOEXCEPT -> void;
     static auto present(int32_t handle) Ohm_NOEXCEPT -> void;
-    static auto poll(int32_t handle) Ohm_NOEXCEPT -> void;
     static auto destroy(int32_t handle) Ohm_NOEXCEPT -> void;
   };
 };

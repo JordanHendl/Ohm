@@ -13,6 +13,7 @@ set(vulkan_impl_srcs
      pipeline.cpp
      descriptor.cpp
      swapchain.cpp
+     event.cpp
      window.cpp
    )
 

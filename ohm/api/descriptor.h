@@ -65,6 +65,7 @@ auto Descriptor<API>::operator=(Descriptor&& mv) -> Descriptor& {
 
   mv.m_handle = -1;
   mv.m_parent = nullptr;
+  return *this;
 }
 
 template <typename API>

@@ -116,14 +116,15 @@ class Event {
     JoystickInitialize,
     WindowExit,
   };
-  Event();
-  Event(Event::Type type, Key key);
-  Event(Event::Type type, MouseButton button);
-  Event(const Event& event);
-  ~Event() = default;
-  auto type() const -> Type;
-  auto key() const -> Key;
-  auto button() const -> MouseButton;
+
+  inline Event();
+  inline Event(Event::Type type, Key key);
+  inline Event(Event::Type type, MouseButton button);
+  inline Event(const Event& event);
+  inline ~Event() = default;
+  inline auto type() const -> Type;
+  inline auto key() const -> Key;
+  inline auto button() const -> MouseButton;
 
  private:
   Type event_type;
@@ -142,11 +143,51 @@ class EventRegister {
   inline EventRegister();
   ~EventRegister();
   inline auto add(std::function<void(const Event&)> callback) -> void;
-
+  inline auto reset() -> void;
  private:
   int32_t m_handle;
 };
 
+Event::Event( Event::Type type, Key key )
+{
+  this->event_type = type ;
+  this->event_key  = key  ;
+}
+
+Event::Event( Event::Type type, MouseButton button )
+{
+  this->event_type   = type   ;
+  this->event_button = button ;
+}
+
+Event::Event()
+{
+  this->event_type   = Event::Type::None ;
+  this->event_button = MouseButton::None ;
+  this->event_key    = Key::None         ;
+}
+
+Event::Event( const Event& event )
+{
+  this->event_key  = event.event_key  ;
+  this->event_type = event.event_type ;
+}
+
+auto Event::button() const -> MouseButton
+{
+  return this->event_button ;
+}
+
+auto Event::type() const -> Event::Type
+{
+  return this->event_type ;
+}
+
+auto Event::key() const -> Key
+{
+  return this->event_key ;
+}
+  
 template <typename API>
 EventRegister<API>::EventRegister() {
   this->m_handle = API::Event::create();
@@ -161,6 +202,17 @@ template <typename API>
 auto EventRegister<API>::add(std::function<void(const Event&)> callback)
     -> void {
   API::Event::add(this->m_handle, callback);
+}
+
+template <typename API>
+auto EventRegister<API>::reset() -> void {
+  API::Event::destroy(this->m_handle);
+  this->m_handle = API::Event::create();
+}
+
+template<typename API>
+static auto poll_events() -> void {
+  API::Event::poll();
 }
 
 auto to_string(const Event& event) -> std::string {

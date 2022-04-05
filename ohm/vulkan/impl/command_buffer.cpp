@@ -19,6 +19,7 @@
 #include "ohm/vulkan/impl/memory.h"
 #include "ohm/vulkan/impl/pipeline.h"
 #include "ohm/vulkan/impl/swapchain.h"
+#include "system.h"
 namespace ohm {
 namespace ovk {
 constexpr unsigned BUFFER_COUNT = 3;
@@ -554,7 +555,51 @@ auto CommandBuffer::blit(RenderPass& src, Swapchain& dst, Filter in_filter,
                          unsigned, unsigned framebuffer) -> void {}
 
 auto CommandBuffer::blit(Image& src, Swapchain& dst, Filter in_filter) -> void {
+  auto blit = vk::ImageBlit();
+  auto filter = vk::Filter();
 
+  switch (in_filter) {
+    case Filter::Cubic:
+      filter = vk::Filter::eCubicIMG;
+      break;
+    case Filter::Linear:
+      filter = vk::Filter::eLinear;
+      break;
+    case Filter::Nearest:
+      filter = vk::Filter::eNearest;
+      break;
+    default:
+      filter = vk::Filter::eLinear;
+      break;
+  };
+
+  auto src_offsets = std::array<vk::Offset3D, 2>{
+      vk::Offset3D(0, 0, 0), vk::Offset3D(src.width(), src.height(), 1)};
+  auto dst_offsets = std::array<vk::Offset3D, 2>{
+      vk::Offset3D(0, 0, 0), vk::Offset3D(dst.width(), dst.height(), 1)};
+
+  blit.setSrcSubresource(src.subresource());
+  blit.setSrcOffsets(src_offsets);
+  blit.setDstOffsets(dst_offsets);
+  auto src_old_layout = src.layout();
+
+  auto function = [&](vk::CommandBuffer& cmd, unsigned index) {
+    auto& tex = ovk::system().image[dst.images()[index]];
+    blit.setDstSubresource(tex.subresource());
+    auto dst_old_layout = tex.layout();
+
+    this->transition_single(tex, cmd, vk::ImageLayout::eGeneral);
+    cmd.blitImage(src.image(), src.layout(), tex.image(), tex.layout(), 1,
+                  &blit, filter, this->m_device->dispatch());
+    this->transition_single(tex, cmd, dst_old_layout);
+  };
+
+  auto lock = std::unique_lock<std::mutex>(this->m_lock);
+  this->transition(src, vk::ImageLayout::eGeneral);
+  this->append(function);
+  if (src_old_layout != vk::ImageLayout::eUndefined)
+    this->transition(src, src_old_layout);
+  this->m_dirty = true;
 }
 
 auto CommandBuffer::detach() -> void {}
@@ -632,7 +677,7 @@ auto CommandBuffer::draw(const Buffer& indices, const Buffer& vertices,
   this->m_dirty = true;
 }
 
-auto CommandBuffer::dispatch(unsigned x, unsigned y, unsigned z) -> void {
+auto CommandBuffer::dispatch(size_t x, size_t y, size_t z) -> void {
   auto lock = std::unique_lock<std::mutex>(this->m_lock);
 
   auto function = [&x, &y, &z, this](vk::CommandBuffer& cmd, size_t) {
@@ -649,6 +694,47 @@ auto CommandBuffer::dispatch(unsigned x, unsigned y, unsigned z) -> void {
 auto CommandBuffer::depended() const -> bool { return this->m_depended; }
 
 auto CommandBuffer::setDepended(bool flag) -> void { this->m_depended = flag; }
+
+auto CommandBuffer::transition_single(Image& texture, vk::CommandBuffer cmd,
+                                     vk::ImageLayout layout) -> void {
+  auto range = vk::ImageSubresourceRange();
+  auto src = vk::PipelineStageFlags();
+  auto dst = vk::PipelineStageFlags();
+  auto dep_flags = vk::DependencyFlags();
+  auto new_layout = vk::ImageLayout();
+  auto old_layout = vk::ImageLayout();
+
+  new_layout = layout;
+  old_layout = texture.layout();
+
+  range.setBaseArrayLayer(0);
+  range.setBaseMipLevel(0);
+  range.setLevelCount(1);
+  range.setLayerCount(texture.layers());
+  if (texture.format() == vk::Format::eD24UnormS8Uint)
+    range.setAspectMask(vk::ImageAspectFlagBits::eDepth |
+                        vk::ImageAspectFlagBits::eStencil);
+  else
+    range.setAspectMask(vk::ImageAspectFlagBits::eColor);
+
+  texture.barrier().setOldLayout(old_layout);
+  texture.barrier().setNewLayout(new_layout);
+  texture.barrier().setImage(texture.image());
+  texture.barrier().setSubresourceRange(range);
+  texture.barrier().setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
+  texture.barrier().setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
+
+  dep_flags = vk::DependencyFlags();
+  src = vk::PipelineStageFlagBits::eTopOfPipe;
+  dst = vk::PipelineStageFlagBits::eBottomOfPipe;
+
+  if (new_layout != vk::ImageLayout::eUndefined) {
+    cmd.pipelineBarrier(src, dst, dep_flags, 0, nullptr, 0, nullptr, 1,
+                        &texture.barrier(), this->m_device->dispatch());
+    texture.setLayout(new_layout);
+    this->m_dirty = true;
+  }
+}
 
 auto CommandBuffer::transition(Image& image, vk::ImageLayout layout) -> void {
   auto range = vk::ImageSubresourceRange();

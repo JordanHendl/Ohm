@@ -160,12 +160,18 @@ auto Swapchain::gen_images() -> void {
 
   this->m_images.reserve(images.size());
   auto index = 0u;
+  auto image_index = 0u;
   for (auto& img : ovk::system().image) {
     if (!img.initialized()) {
-      img = std::move(ovk::Image(this->device(), info, images[index]));
+      img = std::move(ovk::Image(this->device(), info, images[image_index++]));
+      auto cmd = CommandBuffer(this->device(), QueueType::Graphics);
+      cmd.begin();
+      cmd.transition(img, vk::ImageLayout::ePresentSrcKHR);
+      cmd.submit();
+      cmd.synchronize();
       this->m_images.push_back(index);
-      index++;
     }
+    index++;
     if (index >= images.size()) return;
   }
 }
@@ -252,8 +258,7 @@ auto Swapchain::present() -> bool {
     }
   } else {
     if (this->m_dependency) this->m_dependency->end();
-    this->m_current_frame =
-        (this->m_current_frame + 1) % this->images().size();
+    this->m_current_frame = (this->m_current_frame + 1) % this->images().size();
     this->m_acquired.pop();
   }
 

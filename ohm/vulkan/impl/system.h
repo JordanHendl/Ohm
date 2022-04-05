@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <unordered_map>
 
 #include <vulkan/vulkan.hpp>
 #include "ohm/api/system.h"
@@ -13,6 +14,7 @@
 #include "ohm/vulkan/impl/memory.h"
 #include "ohm/vulkan/impl/pipeline.h"
 #include "ohm/vulkan/impl/swapchain.h"
+#include "ohm/vulkan/impl/event.h"
 #include "ohm/vulkan/impl/window.h"
 namespace ohm {
 namespace ovk {
@@ -37,6 +39,8 @@ struct System {
   std::array<Swapchain, NUM_WINDOWS> swapchain;
   vk::AllocationCallbacks* allocate_cb;
 
+  std::unordered_map<int32_t, std::shared_ptr<Event>> event;
+  
   auto shutdown() -> void {
     for (auto& thing : this->swapchain) {
       auto tmp = std::move(thing);

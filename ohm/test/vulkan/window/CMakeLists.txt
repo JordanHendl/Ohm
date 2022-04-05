@@ -1,0 +1,8 @@
+if(Build_Tests)
+find_package(GTest)
+if(GTest_FOUND)
+  add_executable(test_ohm_vulkan_window test.cpp)
+  target_link_libraries(test_ohm_vulkan_window GTest::GTest vulkan)
+  add_test(NAME test_ohm_vulkan_window COMMAND test_ohm_vulkan_window)
+endif()
+endif()

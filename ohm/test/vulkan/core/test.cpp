@@ -197,9 +197,9 @@ auto test_images_size() -> bool {
 
 auto test_images_params() -> bool {
   auto window = Window<API>(0, {"lmao", 1280, 1024});
-  for(auto& img : window.images()) {
-    if(img.width() != 1280) return false;
-    if(img.height() != 1024) return false;
+  for (auto& img : window.images()) {
+    if (img.width() != 1280) return false;
+    if (img.height() != 1024) return false;
   }
   return true;
 }
@@ -354,10 +354,10 @@ TEST(Vulkan, Descriptor) {
   EXPECT_TRUE(ohm::descriptor::test_binding());
 }
 
-TEST(Vulkan, Window) { 
-  EXPECT_TRUE(ohm::window::test_creation()); 
-  EXPECT_TRUE(ohm::window::test_images_size()); 
-  EXPECT_TRUE(ohm::window::test_images_params()); 
+TEST(Vulkan, Window) {
+  EXPECT_TRUE(ohm::window::test_creation());
+  EXPECT_TRUE(ohm::window::test_images_size());
+  EXPECT_TRUE(ohm::window::test_images_params());
 }
 
 TEST(Vulkan, Commands) {

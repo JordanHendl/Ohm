@@ -21,6 +21,7 @@ class DescriptorPool {
   auto initialize(const Pipeline& shader, size_t amount = MAX_DESCRIPTORS)
       -> void;
   auto make() -> Descriptor;
+  auto update_reference(const Pipeline* ref) -> void { this->m_pipeline = ref; }
 
  private:
   using UniformMap = std::unordered_map<std::string, io::ShaderVariable>;
@@ -47,7 +48,6 @@ class Descriptor {
   auto bind(std::string_view name, const Image** images, unsigned count)
       -> void;
   auto bind(std::string_view name, const Buffer& buffer) -> void;
-
   auto initialized() const -> bool { return this->m_set; }
   auto pipeline() const -> const Pipeline& { return *this->m_pipeline; }
   auto set() -> vk::DescriptorSet& { return this->m_set; }
