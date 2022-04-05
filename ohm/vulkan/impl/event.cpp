@@ -1,3 +1,9 @@
+#define VULKAN_HPP_ASSERT_ON_RESULT
+#define VULKAN_HPP_STORAGE_SHARED_EXPORT
+#define VULKAN_HPP_STORAGE_SHARED
+#define VULKAN_HPP_NO_DEFAULT_DISPATCHER
+#define VULKAN_HPP_NO_EXCEPTIONS
+
 #include "event.h"
 #include "ohm/api/event.h"
 #include "image.h"

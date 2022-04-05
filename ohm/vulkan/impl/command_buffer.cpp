@@ -22,7 +22,7 @@
 #include "system.h"
 namespace ohm {
 namespace ovk {
-constexpr unsigned BUFFER_COUNT = 3;
+constexpr unsigned BUFFER_COUNT = 8;
 
 static std::map<vk::Device, std::map<Family, vk::CommandPool>> pool_map;
 auto CommandBuffer::create_pool(Family queue_family) -> vk::CommandPool {

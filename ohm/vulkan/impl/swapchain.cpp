@@ -64,7 +64,10 @@ Swapchain::~Swapchain() {
     for (auto& sem : this->m_image_available)
       gpu.destroy(sem, alloc_cb, dispatch);
     for (auto& sem : this->m_present_done) gpu.destroy(sem, alloc_cb, dispatch);
-
+    
+    for(auto& img : this->m_images)
+      auto tmp = std::move(ovk::system().image[img]);
+    
     this->m_images.clear();
     this->m_fences.clear();
     this->m_image_available.clear();
@@ -172,7 +175,7 @@ auto Swapchain::gen_images() -> void {
       this->m_images.push_back(index);
     }
     index++;
-    if (index >= images.size()) return;
+    if (image_index >= images.size()) return;
   }
 }
 

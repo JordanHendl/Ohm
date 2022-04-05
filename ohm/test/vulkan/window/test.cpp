@@ -48,7 +48,7 @@ auto callback(const Event& event) {
 }
 
 auto test() -> bool {
-  auto window = Window<API>(0, {"Test Window", 1280, 1024});
+  auto window = Window<API>(0, {"Test Window", 1280, 1024, true});
   auto pipeline =
       Pipeline<API>(0, {{{"test_sequence.comp.glsl", test_shader_sequence}}});
   auto descriptor = pipeline.descriptor();
@@ -67,7 +67,10 @@ auto test() -> bool {
   cb.add(&callback);
   while (running) {
     poll_events<API>();
-    window.present();
+    if(!window.present()) {
+      cmd.begin();
+      cmd.blit(image, window);
+    }
   }
   return true;
 }

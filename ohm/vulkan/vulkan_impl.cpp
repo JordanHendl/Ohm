@@ -10,6 +10,7 @@
 #include "ohm/api/memory.h"
 #include "ohm/api/system.h"
 #include "ohm/vulkan/impl/system.h"
+#include "ohm/vulkan/impl/error.h"
 #include <atomic>
 #include <SDL.h>
 #ifdef __linux__
@@ -232,7 +233,7 @@ auto Vulkan::Image::destroy(int32_t handle) Ohm_NOEXCEPT -> void {
   auto tmp = ovk::Image();
 
   OhmAssert(!val.initialized(),
-            "Attempting to use array object that is not initialized.");
+            "Attempting to use image object that is not initialized.");
   tmp = std::move(val);
 }
 
@@ -403,7 +404,7 @@ auto Vulkan::Commands::dispatch(int32_t handle, size_t x, size_t y,
 }
 
 auto Vulkan::Commands::blit_to_window(int32_t handle, int32_t src, int32_t dst,
-                                      Filter filter) -> Ohm_NOEXCEPT void {
+                                      Filter filter) Ohm_NOEXCEPT -> void {
   OhmAssert(handle < 0, "Attempting to use an invalid commands handle.");
   OhmAssert(dst < 0, "Attempting to use an invalid window handle.");
   auto& cmd = ovk::system().commands[handle];
@@ -419,7 +420,7 @@ auto Vulkan::Commands::blit_to_window(int32_t handle, int32_t src, int32_t dst,
 }
 
 auto Vulkan::Commands::blit_to_image(int32_t handle, int32_t src, int32_t dst,
-                                     Filter filter) -> Ohm_NOEXCEPT void {
+                                     Filter filter) Ohm_NOEXCEPT -> void {
   OhmAssert(handle < 0, "Attempting to use an invalid commands handle.");
   OhmAssert(dst < 0, "Attempting to use an invalid window handle.");
   auto& cmd = ovk::system().commands[handle];
@@ -436,7 +437,7 @@ auto Vulkan::Commands::blit_to_image(int32_t handle, int32_t src, int32_t dst,
 
 auto Vulkan::Commands::blit_from_renderpass(int32_t handle, int32_t src,
                                             int32_t dst, Filter filter)
-    -> Ohm_NOEXCEPT void {}
+    Ohm_NOEXCEPT -> void {}
 
 auto Vulkan::Commands::submit(int32_t handle) Ohm_NOEXCEPT -> void {
   OhmAssert(handle < 0, "Attempting to use an invalid commands handle.");
@@ -663,18 +664,26 @@ auto Vulkan::Window::wait(int32_t handle, int32_t cmd) Ohm_NOEXCEPT -> void {
   swapchain.wait(buf);
 }
 
-auto Vulkan::Window::present(int32_t handle) Ohm_NOEXCEPT -> void {
+auto Vulkan::Window::present(int32_t handle) Ohm_NOEXCEPT -> bool {
   OhmAssert(handle < 0, "Accessing invalid handle!");
   auto& swapchain = ovk::system().swapchain[handle];
   OhmAssert(!swapchain.initialized(), "Accessing invalid swapchain!");
   if (!swapchain.present()) {
-    auto& device = swapchain.device();
+    auto device = &swapchain.device();
     auto surface = swapchain.surface();
     auto vsync = swapchain.vsync();
-
-    auto tmp = std::move(swapchain);
-    swapchain = std::move(ovk::Swapchain(device, surface, vsync));
+    auto dep = swapchain.dependency();
+    dep->setDepended(false);
+    ovk::error(device->device().waitIdle(device->dispatch()));
+    {
+      auto tmp = std::move(swapchain);
+    }
+    swapchain = std::move(ovk::Swapchain(*device, surface, vsync));
+    if(dep)
+      swapchain.wait(*dep);
+    return false;
   }
+  return true;
 }
 }  // namespace v1
 }  // namespace ohm

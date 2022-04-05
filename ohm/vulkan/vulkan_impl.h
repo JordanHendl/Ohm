@@ -78,11 +78,11 @@ struct Vulkan {
                          size_t z) Ohm_NOEXCEPT -> void;
     static auto submit(int32_t handle) Ohm_NOEXCEPT -> void;
     static auto blit_to_window(int32_t handle, int32_t src, int32_t dst,
-                               Filter filter) -> Ohm_NOEXCEPT void;
+                               Filter filter) Ohm_NOEXCEPT -> void;
     static auto blit_to_image(int32_t handle, int32_t src, int32_t dst,
-                              Filter filter) -> Ohm_NOEXCEPT void;
+                              Filter filter) Ohm_NOEXCEPT -> void;
     static auto blit_from_renderpass(int32_t handle, int32_t src, int32_t dst,
-                                     Filter filter) -> Ohm_NOEXCEPT void;
+                                     Filter filter) Ohm_NOEXCEPT -> void;
     static auto synchronize(int32_t handle) Ohm_NOEXCEPT -> void;
   };
 
@@ -134,7 +134,7 @@ struct Vulkan {
     static auto update(int32_t handle, const WindowInfo& info) Ohm_NOEXCEPT
         -> void;
     static auto wait(int32_t handle, int32_t cmd) Ohm_NOEXCEPT -> void;
-    static auto present(int32_t handle) Ohm_NOEXCEPT -> void;
+    static auto present(int32_t handle) Ohm_NOEXCEPT -> bool;
     static auto destroy(int32_t handle) Ohm_NOEXCEPT -> void;
   };
 };
