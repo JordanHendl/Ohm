@@ -2,9 +2,10 @@
 #include <array>
 #include <iostream>
 #include <memory>
+#include <thread>
+#include <chrono>
 #include "ohm/api/ohm.h"
 #include "ohm/vulkan/vulkan_impl.h"
-
 const char* test_shader_sequence = {
     "#version 450 core\n"
     "#extension GL_ARB_separate_shader_objects : enable\n"
@@ -48,6 +49,7 @@ auto callback(const Event& event) {
 }
 
 auto test() -> bool {
+  using namespace std::chrono_literals;
   auto window = Window<API>(0, {"Test Window", 1280, 1024, true});
   auto pipeline =
       Pipeline<API>(0, {{{"test_sequence.comp.glsl", test_shader_sequence}}});
@@ -66,6 +68,7 @@ auto test() -> bool {
   window.wait(cmd);
   cb.add(&callback);
   while (running) {
+    if(!window.has_focus()) std::this_thread::sleep_for(1s);
     poll_events<API>();
     if (!window.present()) {
       cmd.begin();

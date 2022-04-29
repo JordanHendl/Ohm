@@ -1,4 +1,5 @@
 #include "dlloader.h"
+#include "ohm/api/exception.h"
 #include <iostream>
 #include <map>
 
@@ -42,7 +43,7 @@ static inline void releaseHandle(LibHandle handle) { dlclose(handle); }
 
 namespace ohm {
 namespace io {
-struct DlloaderData {
+struct Dlloader::DlloaderData {
   using FunctionMap = std::map<std::string, Dlloader::DL_FUNC>;
   using SharedLibraryMap = std::map<std::string, bool>;
 
@@ -58,23 +59,18 @@ struct DlloaderData {
   }
 };
 
-Dlloader::Dlloader() { this->loader_data = new DlloaderData(); }
+Dlloader::Dlloader() { this->m_data = std::make_shared<Dlloader::DlloaderData>(); }
 
-Dlloader::~Dlloader() { delete this->loader_data; }
+Dlloader::~Dlloader() {}
 
 Dlloader::DL_FUNC Dlloader::symbol(const char* symbol_name) {
   Dlloader::DL_FUNC func;
 
   if (data().map.find(symbol_name) == data().map.end()) {
     func = reinterpret_cast<Dlloader::DL_FUNC>(
-        loadSymbol(data().handle, symbol_name));
-
-    if (func) {
-      data().map.insert({symbol_name, func});
-    } else {
-      // todo
-      return nullptr;
-    }
+          loadSymbol(data().handle, symbol_name));
+    OhmAssert(!func, "Unable to load requested symnol from dynamic lib!");
+    data().map.insert({symbol_name, func});
   }
 
   return data().map.at(symbol_name);
@@ -93,8 +89,8 @@ void Dlloader::reset() {
   if (data().handle) ::releaseHandle(data().handle);
 }
 
-DlloaderData& Dlloader::data() { return *this->loader_data; }
+Dlloader::DlloaderData& Dlloader::data() { return *this->m_data; }
 
-const DlloaderData& Dlloader::data() const { return *this->loader_data; }
+const Dlloader::DlloaderData& Dlloader::data() const { return *this->m_data; }
 }  // namespace io
 }  // namespace ohm

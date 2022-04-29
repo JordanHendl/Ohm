@@ -461,10 +461,46 @@ auto Vulkan::Commands::synchronize(int32_t handle) Ohm_NOEXCEPT -> void {
 auto Vulkan::RenderPass::create(int gpu,
                                 const RenderPassInfo& info) Ohm_NOEXCEPT
     -> int32_t {
+  auto& device = ovk::system().devices[gpu];
+  auto index = 0;
+  for (auto& val : ovk::system().render_pass) {
+    if (!val.initialized()) {
+      val = std::move(ovk::RenderPass(device, info));
+      return index;
+    }
+    index++;
+  }
+
+  OhmAssert(true, "Too many render passes. API has run out of allocation.");
   return -1;
 }
 
-auto Vulkan::RenderPass::destroy(int32_t handle) Ohm_NOEXCEPT -> void {}
+auto Vulkan::RenderPass::destroy(int32_t handle) Ohm_NOEXCEPT -> void {
+  OhmAssert(handle < 0, "Attempting to destroy an invalid render pass handle.");
+  auto& pass = ovk::system().render_pass[handle];
+  OhmAssert(!pass.initialized(),
+            "Attempting to use object that is not initialized.");
+  auto tmp = ovk::RenderPass();
+  tmp = std::move(pass);
+}
+
+auto Vulkan::RenderPass::count(int32_t handle) Ohm_NOEXCEPT -> size_t {
+  OhmAssert(handle < 0, "Attempting to destroy an invalid render pass handle.");
+  auto& pass = ovk::system().render_pass[handle];
+  OhmAssert(!pass.initialized(),
+            "Attempting to use object that is not initialized.");
+  return pass.framebuffers().size();
+}
+
+auto Vulkan::RenderPass::image(int32_t handle, size_t index) -> int32_t {
+  OhmAssert(handle < 0, "Attempting to destroy an invalid render pass handle.");
+  auto& pass = ovk::system().render_pass[handle];
+  OhmAssert(!pass.initialized(),
+            "Attempting to use object that is not initialized.");
+  OhmAssert(index >= pass.framebuffers().size(),
+            "Accessing render pass out of bounds.");
+  return pass.framebuffers()[index];
+}
 
 auto Vulkan::Pipeline::create(int gpu, const PipelineInfo& info) Ohm_NOEXCEPT
     -> int32_t {
@@ -654,6 +690,13 @@ auto Vulkan::Window::update(int32_t handle, const WindowInfo& info) Ohm_NOEXCEPT
   auto& window = ovk::system().window[handle];
   OhmAssert(!window.initialized(), "Accessing invalid window!");
   window.update(info);
+}
+
+auto Vulkan::Window::has_focus(int32_t handle) Ohm_NOEXCEPT -> bool {
+  OhmAssert(handle < 0, "Accessing invalid handle!");
+  auto& window = ovk::system().window[handle];
+  OhmAssert(!window.initialized(), "Accessing invalid window!");
+  return window.has_focus();
 }
 
 auto Vulkan::Window::wait(int32_t handle, int32_t cmd) Ohm_NOEXCEPT -> void {

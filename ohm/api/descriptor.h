@@ -2,6 +2,8 @@
 #include "array.h"
 #include "image.h"
 #include "memory.h"
+#include <string>
+
 namespace ohm {
 template <typename API>
 class Pipeline;

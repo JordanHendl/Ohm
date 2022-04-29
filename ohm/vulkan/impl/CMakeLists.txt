@@ -12,6 +12,7 @@ set(vulkan_impl_srcs
      shader.cpp
      pipeline.cpp
      descriptor.cpp
+     render_pass.cpp
      swapchain.cpp
      event.cpp
      window.cpp

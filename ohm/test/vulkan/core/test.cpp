@@ -150,11 +150,37 @@ auto test_getters() -> bool {
 }  // namespace image
 namespace render_pass {
 auto test_creation() -> bool {
-  auto rp = RenderPass<API>();
-  return rp.handle() >= 0;
+  auto info = RenderPassInfo();
+  auto subpass = Subpass();
+  subpass.attachments.push_back({});
+  info.subpasses.push_back(subpass);
+
+  auto render_pass = RenderPass<API>(0, info);
+  return render_pass.handle() >= 0;
+}
+
+auto test_images() -> bool {
+  auto info = RenderPassInfo();
+  auto subpass = Subpass();
+  subpass.attachments.push_back({});
+  info.subpasses.push_back(subpass);
+  auto render_pass = RenderPass<API>(0, info);
+  return render_pass.images().size() == 3;
+}
+
+auto test_images_valid() -> bool {
+  auto info = RenderPassInfo();
+  auto subpass = Subpass();
+  subpass.attachments.push_back({});
+  info.subpasses.push_back(subpass);
+
+  auto render_pass = RenderPass<API>(0, info);
+  for (auto& img : render_pass.images()) {
+    if (img.handle() < 0) return false;
+  }
+  return true;
 }
 }  // namespace render_pass
-
 namespace pipeline {
 auto test_creation() -> bool {
   auto pipeline =
@@ -358,6 +384,12 @@ TEST(Vulkan, Window) {
   EXPECT_TRUE(ohm::window::test_creation());
   EXPECT_TRUE(ohm::window::test_images_size());
   EXPECT_TRUE(ohm::window::test_images_params());
+}
+
+TEST(Vulkan, RenderPass) {
+  EXPECT_TRUE(ohm::render_pass::test_creation());
+  EXPECT_TRUE(ohm::render_pass::test_images());
+  EXPECT_TRUE(ohm::render_pass::test_images_valid());
 }
 
 TEST(Vulkan, Commands) {

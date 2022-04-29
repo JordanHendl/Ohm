@@ -150,7 +150,7 @@ auto Shader::ShaderData::reflect(Shader::Stage& stage) -> void {
   auto& spv = stage.spirv;
   auto result = spvReflectCreateShaderModule(spv.size() * sizeof(uint32_t),
                                              spv.data(), &module);
-  OhmException(result != success, Error::LogicError, "Failed to parse SPV.");
+  OhmAssert(result != success, "Failed to parse SPV.");
 
   this->reflect_variables(stage, module);
   this->reflect_io(stage, module);
@@ -163,21 +163,21 @@ auto Shader::ShaderData::reflect_io(Shader::Stage& stage,
   constexpr auto success = SPV_REFLECT_RESULT_SUCCESS;
   auto count = 0u;
   auto result = spvReflectEnumerateInputVariables(&module, &count, nullptr);
-  OhmException(result != success, Error::LogicError, "Failed to enumerate SPV");
+  OhmAssert(result != success, "Failed to enumerate SPV. ");
 
   auto inputs = std::vector<SpvReflectInterfaceVariable*>(count);
   result = spvReflectEnumerateInputVariables(&module, &count, inputs.data());
-  OhmException(result != success, Error::LogicError, "Failed to enumerate SPV");
+  OhmAssert(result != success, "Failed to enumerate SPV. ");
 
   //---
 
   count = 0u;
   result = spvReflectEnumerateOutputVariables(&module, &count, nullptr);
-  OhmException(result != success, Error::LogicError, "Failed to enumerate SPV");
+  OhmAssert(result != success, "Failed to enumerate SPV. ");
 
   auto outputs = std::vector<SpvReflectInterfaceVariable*>(count);
   result = spvReflectEnumerateOutputVariables(&module, &count, outputs.data());
-  OhmException(result != success, Error::LogicError, "Failed to enumerate SPV");
+  OhmAssert(result != success, "Failed to enumerate SPV. ");
 
   for (const auto* input : inputs) {
     auto attribute = Stage::Attribute();
@@ -205,11 +205,11 @@ auto Shader::ShaderData::reflect_variables(Shader::Stage& stage,
   constexpr auto success = SPV_REFLECT_RESULT_SUCCESS;
   auto count = 0u;
   auto result = spvReflectEnumerateDescriptorSets(&module, &count, nullptr);
-  OhmException(result != success, Error::LogicError, "Failed to enumerate SPV");
+  OhmAssert(result != success, "Failed to enumerate SPV. ");
 
   auto sets = std::vector<SpvReflectDescriptorSet*>(count);
   result = spvReflectEnumerateDescriptorSets(&module, &count, sets.data());
-  OhmException(result != success, Error::LogicError, "Failed to enumerate SPV");
+  OhmAssert(result != success, "Failed to enumerate SPV. ");
 
   for (const auto* set : sets) {
     for (auto index = 0u; index < set->binding_count; index++) {
@@ -238,9 +238,9 @@ auto Shader::ShaderData::preprocess(std::string_view name,
   auto result =
       compiler.PreprocessGlsl(src.begin(), kind, name.begin(), options);
 
-  OhmException(
+  OhmAssert(
       result.GetCompilationStatus() != shaderc_compilation_status_success,
-      Error::LogicError, "Failed to preprocess shader.");
+      + "Failed to preprocess shader." + std::string(result.GetErrorMessage()));
 
   return {result.cbegin(), result.cend()};
 }
@@ -262,9 +262,9 @@ auto Shader::ShaderData::assemblize(std::string_view name,
   auto result = compiler.CompileGlslToSpvAssembly(src.begin(), kind,
                                                   name.begin(), options);
 
-  OhmException(
+  OhmAssert(
       result.GetCompilationStatus() != shaderc_compilation_status_success,
-      Error::LogicError, "Failed to assemblize shader.");
+      "Failed to assemblize shader. " + std::string(result.GetErrorMessage()));
 
   return {result.cbegin(), result.cend()};
 }
@@ -284,9 +284,7 @@ auto Shader::ShaderData::assemble(shaderc_shader_kind kind,
 
   auto result = compiler.AssembleToSpv(src.begin(), src.size(), options);
 
-  OhmException(
-      result.GetCompilationStatus() != shaderc_compilation_status_success,
-      Error::LogicError, "Failed to assemble shader.");
+  OhmAssert(result.GetCompilationStatus() != shaderc_compilation_status_success, "Failed to assemble shader. " + std::string(result.GetErrorMessage()));
 
   return {result.cbegin(), result.cend()};
 }
@@ -366,7 +364,7 @@ auto Shader::stages() const -> const std::vector<Stage>& {
 auto Shader::save(std::string_view path) -> bool {
   auto sanitized_path = sanitize(path);
   auto stream = std::ofstream(sanitized_path, std::ios::binary | std::ios::out);
-  OhmException(stream, Error::LogicError, "Could not load file!");
+  OhmAssert(stream, "Could not load file!");
   auto& stages = this->stages();
   stream << osh_magic_number;
   stream << stages.size();
@@ -384,14 +382,13 @@ auto Shader::save(std::string_view path) -> bool {
 
 auto Shader::load(std::string_view path) -> bool {
   auto stream = std::ifstream(path.begin(), std::ios::binary | std::ios::in);
-  OhmException(stream, Error::LogicError, "Could not load file!");
+  OhmAssert(stream, "Could not load file!");
   auto num_stages = 0;
   auto magic = 0;
 
   this->data = std::make_shared<Shader::ShaderData>();
   stream >> magic;
-  OhmException(magic != osh_magic_number, Error::LogicError,
-               "Shader magic number not valid.");
+  OhmAssert(magic != osh_magic_number, "Shader magic number not valid.");
   stream >> num_stages;
   this->data->stages.resize(num_stages);
 

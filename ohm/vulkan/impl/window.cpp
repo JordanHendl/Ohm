@@ -213,6 +213,15 @@ auto Window::fullscreen() -> bool {
   return flags & SDL_WINDOW_FULLSCREEN;
 }
 
+auto Window::has_focus() -> bool {
+  OhmAssert(
+      !this->m_window,
+      "Attempting to access athis->m_window that has not been initialized.");
+  auto flags = SDL_GetWindowFlags(this->m_window);
+
+  return flags & SDL_WINDOW_INPUT_FOCUS;
+}
+
 auto Window::width() -> size_t {
   int w = 0;
   int h = 0;

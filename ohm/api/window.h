@@ -73,6 +73,7 @@ class Window {
   auto image(size_t index) const -> const Image<API>&;
   auto images() const -> const std::vector<Image<API>>&;
   auto current() -> Image<API>&;
+  auto has_focus() -> bool;
   auto wait(const Commands<API>& cmds) -> void;
   auto handle() const -> int32_t;
   auto present() -> bool;
@@ -164,6 +165,11 @@ template <typename API>
 auto Window<API>::current() -> Image<API>& {
   auto curr = API::Window::current(this->m_handle);
   return this->m_images[curr];
+}
+
+template <typename API>
+auto Window<API>::has_focus() -> bool {
+  return API::Window::has_focus(this->m_handle);
 }
 
 template <typename API>

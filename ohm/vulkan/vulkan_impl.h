@@ -90,6 +90,8 @@ struct Vulkan {
     static auto create(int gpu, const RenderPassInfo& info) Ohm_NOEXCEPT
         -> int32_t;
     static auto destroy(int32_t handle) Ohm_NOEXCEPT -> void;
+    static auto count(int32_t handle) Ohm_NOEXCEPT -> size_t;
+    static auto image(int32_t handle, size_t index) -> int32_t;
   };
 
   /** Pipeline-related function API
@@ -136,6 +138,7 @@ struct Vulkan {
         -> void;
     static auto wait(int32_t handle, int32_t cmd) Ohm_NOEXCEPT -> void;
     static auto present(int32_t handle) Ohm_NOEXCEPT -> bool;
+    static auto has_focus(int32_t handle) Ohm_NOEXCEPT -> bool;
     static auto destroy(int32_t handle) Ohm_NOEXCEPT -> void;
   };
 };

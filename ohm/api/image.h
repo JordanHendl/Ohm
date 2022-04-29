@@ -68,6 +68,9 @@ struct ImageInfo {
 template <typename API>
 class Window;
 
+template <typename API, typename Allocator>
+class RenderPass;
+
 template <typename API, typename Allocator = DefaultAllocator<API>>
 class Image {
  public:
@@ -88,6 +91,7 @@ class Image {
 
  private:
   friend class Window<API>;
+  friend class RenderPass<API, Allocator>;
 
   int32_t m_handle;
   ImageInfo m_info;

@@ -278,7 +278,9 @@ auto Image::operator=(Image&& mv) -> Image& {
   this->m_sampler = mv.m_sampler;
   this->m_info = mv.m_info;
   this->m_start_layout = mv.m_start_layout;
-
+  this->m_requirements = mv.m_requirements;
+  
+  mv.m_requirements = 0u;
   mv.m_layout = vk::ImageLayout::eUndefined;
   mv.m_old_layout = vk::ImageLayout::eUndefined;
   mv.m_type = vk::ImageType::e2D;

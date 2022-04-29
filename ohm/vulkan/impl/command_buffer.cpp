@@ -22,7 +22,7 @@
 #include "system.h"
 namespace ohm {
 namespace ovk {
-constexpr unsigned BUFFER_COUNT = 8;
+constexpr auto BUFFER_COUNT = 3u;
 
 static std::map<vk::Device, std::map<Family, vk::CommandPool>> pool_map;
 auto CommandBuffer::create_pool(Family queue_family) -> vk::CommandPool {
@@ -494,8 +494,8 @@ auto CommandBuffer::bind(Descriptor& desc) -> void {
 }
 
 auto CommandBuffer::blit(Image& src, Image& dst, Filter in_filter) -> void {
-  vk::ImageBlit blit;
-  vk::Filter filter;
+  auto blit = vk::ImageBlit();
+  auto filter = vk::Filter();
 
   switch (in_filter) {
     case Filter::Cubic:
@@ -524,8 +524,7 @@ auto CommandBuffer::blit(Image& src, Image& dst, Filter in_filter) -> void {
   auto src_old_layout = src.layout();
   auto dst_old_layout = dst.layout();
 
-  auto function = [&src, &dst, &blit, &filter, this](vk::CommandBuffer& cmd,
-                                                     size_t) {
+  auto function = [&](vk::CommandBuffer& cmd, size_t) {
     cmd.blitImage(src.image(), src.layout(), dst.image(), dst.layout(), 1,
                   &blit, filter, this->m_device->dispatch());
   };

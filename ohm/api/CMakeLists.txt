@@ -1,13 +1,18 @@
 
 set(api_headers
-    array.h
     allocators.h
+    array.h
     commands.h
+    descriptor.h
+    event.h
     exception.h
     image.h
     memory.h
-    system.h
     ohm.h
+    pipeline.h
+    render_pass.h
+    system.h
+    window.h
    )
 
 

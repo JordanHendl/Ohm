@@ -5,6 +5,7 @@
 #include <vulkan/vulkan.hpp>
 #include "ohm/api/system.h"
 #include "ohm/io/dlloader.h"
+#include "ohm/vulkan/impl/render_pass.h"
 #include "ohm/vulkan/impl/buffer.h"
 #include "ohm/vulkan/impl/command_buffer.h"
 #include "ohm/vulkan/impl/descriptor.h"
@@ -33,6 +34,7 @@ struct System {
   std::array<Buffer, CACHE_SIZE> buffer;
   std::array<Image, CACHE_SIZE> image;
   std::array<CommandBuffer, CACHE_SIZE> commands;
+  std::array<RenderPass, CACHE_SIZE> render_pass;
   std::array<Pipeline, CACHE_SIZE> pipeline;
   std::array<Descriptor, CACHE_SIZE> descriptor;
   std::array<Window, NUM_WINDOWS> window;
@@ -49,6 +51,9 @@ struct System {
       auto tmp = std::move(thing);
     }
     for (auto& thing : this->image) {
+      auto tmp = std::move(thing);
+    }
+    for (auto& thing : this->render_pass) {
       auto tmp = std::move(thing);
     }
     for (auto& thing : this->buffer) {

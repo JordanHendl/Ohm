@@ -1,5 +1,6 @@
 #pragma once
 #include <utility>
+#include <memory>
 
 namespace ohm {
 namespace io {
@@ -76,7 +77,9 @@ class Dlloader {
  private:
   /** The forward declared structure containing this object's data.
    */
-  struct DlloaderData* loader_data;
+  struct DlloaderData;
+  
+  std::shared_ptr<DlloaderData> m_data;
 
   /** Method to retrieve a reference to this object's internal data structure.
    * @return A reference to this object's internal data structure.

@@ -30,6 +30,7 @@ class Window {
   auto title() -> std::string_view;
   auto borderless() -> bool;
   auto fullscreen() -> bool;
+  auto has_focus() -> bool;
   auto width() -> size_t;
   auto height() -> size_t;
   auto xPos() -> size_t;

@@ -19,6 +19,7 @@ class Array {
   auto operator=(Array&& mv) -> Array&;
   auto memory() const -> const Memory<API, Allocator>&;
   auto size() const -> size_t;
+  auto capacity() const -> size_t;
   auto byte_size() const -> size_t;
   auto handle() const -> int32_t;
 
@@ -108,6 +109,11 @@ auto Array<API, Type, Allocator>::memory() const
 template <typename API, typename Type, class Allocator>
 auto Array<API, Type, Allocator>::size() const -> size_t {
   return this->m_count;
+}
+
+template <typename API, typename Type, class Allocator>
+auto Array<API, Type, Allocator>::capacity() const -> size_t {
+  return this->byte_size() / sizeof(Type);
 }
 
 template <typename API, typename Type, class Allocator>
