@@ -119,7 +119,7 @@ auto convert(io::VariableType type) -> vk::DescriptorType {
       return vk::DescriptorType::eUniformBuffer;
       break;
     default:
-      return vk::DescriptorType::eMutableVALVE;
+      return vk::DescriptorType::eUniformBuffer;
   }
 }
 

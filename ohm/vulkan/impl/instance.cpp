@@ -224,7 +224,7 @@ vk::ApplicationInfo Instance::makeAppInfo() {
 
   info.setPEngineName(this->app_name.c_str());
   info.setPApplicationName(this->app_name.c_str());
-  info.setApiVersion(VK_MAKE_API_VERSION(0, 1, 1, 0));
+  info.setApiVersion(VK_API_VERSION_1_1);
   info.setEngineVersion(VK_MAKE_VERSION(0, 0, 0));
 
   return info;
@@ -232,8 +232,8 @@ vk::ApplicationInfo Instance::makeAppInfo() {
 
 vk::DebugUtilsMessengerCreateInfoEXT Instance::makeDebugInfo() {
   const auto severity_bits =
-      vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
       vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
+      vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
       vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning;
   const auto message_type = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
                             vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
