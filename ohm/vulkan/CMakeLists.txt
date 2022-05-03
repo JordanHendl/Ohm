@@ -13,13 +13,16 @@ set(vulkan_srcs
 
 set(vulkan_includes
      ${SDL2_INCLUDE_DIRS}
+     ${Vulkan_INCLUDE_DIRS}
    )
 set(vulkan_libs
      vulkan_impl
+     ${SDL2_LIBRARIES}
      ${shaderc_libraries}
+     io
    )
 
-add_library               (vulkan SHARED  ${vulkan_srcs})
+add_library               (vulkan SHARED  ${vulkan_srcs} )#${vulkan_impl_srcs})
 target_link_libraries     (vulkan PRIVATE  ${vulkan_libs})
 target_include_directories(vulkan PRIVATE ${vulkan_includes})
 

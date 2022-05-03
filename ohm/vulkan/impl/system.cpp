@@ -8,8 +8,8 @@
 
 namespace ohm {
 namespace ovk {
-auto system() -> System& {
-  static System sys;
+static System sys;
+auto system() -> System& {  
   return sys;
 }
 }  // namespace ovk

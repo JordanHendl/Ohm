@@ -30,61 +30,57 @@ struct System {
   std::vector<ovk::Device> devices;
   std::vector<ohm::Gpu> gpus;
 
-  std::array<Memory, CACHE_SIZE> memory;
-  std::array<Buffer, CACHE_SIZE> buffer;
-  std::array<Image, CACHE_SIZE> image;
-  std::array<CommandBuffer, CACHE_SIZE> commands;
-  std::array<RenderPass, CACHE_SIZE> render_pass;
-  std::array<Pipeline, CACHE_SIZE> pipeline;
-  std::array<Descriptor, CACHE_SIZE> descriptor;
-  std::array<Window, NUM_WINDOWS> window;
-  std::array<Swapchain, NUM_WINDOWS> swapchain;
+  std::vector<Memory> memory;
+  std::vector<Buffer> buffer;
+  std::vector<Image> image;
+  std::vector<CommandBuffer> commands;
+  std::vector<RenderPass> render_pass;
+  std::vector<Pipeline> pipeline;
+  std::vector<Descriptor> descriptor;
+  std::vector<Window> window;
+  std::vector<Swapchain> swapchain;
   vk::AllocationCallbacks* allocate_cb;
-
   std::unordered_map<int32_t, std::shared_ptr<Event>> event;
 
   auto shutdown() -> void {
-    for (auto& thing : this->swapchain) {
-      auto tmp = std::move(thing);
-    }
-    for (auto& thing : this->window) {
-      auto tmp = std::move(thing);
-    }
-    for (auto& thing : this->image) {
-      auto tmp = std::move(thing);
-    }
-    for (auto& thing : this->render_pass) {
-      auto tmp = std::move(thing);
-    }
-    for (auto& thing : this->buffer) {
-      auto tmp = std::move(thing);
-    }
-    for (auto& thing : this->memory) {
-      auto tmp = std::move(thing);
-    }
-    for (auto& thing : this->commands) {
-      auto tmp = std::move(thing);
-    }
-    for (auto& thing : this->pipeline) {
-      auto tmp = std::move(thing);
-    }
+    this->swapchain.clear();
+    this->window.clear();
+    this->image.clear();
+    this->render_pass.clear();
+    this->buffer.clear();
+    this->memory.clear();
+    this->descriptor.clear();
+    this->commands.clear();
+    this->pipeline.clear();
+    
     for (auto& thing : this->devices) {
       ovk::clearPools(thing);
       auto tmp = std::move(thing);
     }
+
+    this->devices.clear();
     { auto tmp = std::move(this->instance); }
     this->loader.reset();
   }
 
   System() {
-    this->system_name = "";
+    this->memory.resize(CACHE_SIZE);
+    this->buffer.resize(CACHE_SIZE);
+    this->image.resize(CACHE_SIZE);
+    this->commands.resize(CACHE_SIZE);
+    this->render_pass.resize(CACHE_SIZE);
+    this->pipeline.resize(CACHE_SIZE);
+    this->descriptor.resize(CACHE_SIZE);
+    this->window.resize(NUM_WINDOWS);
+    this->swapchain.resize(NUM_WINDOWS);
+    this->system_name.clear();
+    this->device_extensions.clear();
+    this->devices.clear();
     this->allocate_cb = nullptr;
   }
 
   ~System() { this->shutdown(); }
 };
-
 auto system() -> System&;
-
 }  // namespace ovk
 }  // namespace ohm

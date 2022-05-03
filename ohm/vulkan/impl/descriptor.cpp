@@ -43,7 +43,7 @@ DescriptorPool::~DescriptorPool() {
     auto* alloc_cb = this->m_device->allocationCB();
     auto& dispatch = this->m_device->dispatch();
     auto flags = vk::DescriptorPoolResetFlags();
-    error(device.resetDescriptorPool(this->m_pool, flags, dispatch));
+    device.resetDescriptorPool(this->m_pool, flags, dispatch);
     device.destroy(this->m_pool, alloc_cb, dispatch);
     this->m_pipeline = nullptr;
   }

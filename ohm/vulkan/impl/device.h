@@ -42,7 +42,12 @@ class Device {
  public:
   Device();
   Device(Device&& mv);
+  Device(const Device& cpy) = delete;
   ~Device();
+  auto operator=(const Device& cpy) -> Device& = delete;
+  //auto operator=(const Device& cpy) -> Device& {
+  //    return *this;
+  //}
   auto operator=(Device&& cpy) -> Device&;
   auto initialize(io::Dlloader& loader, vk::AllocationCallbacks* callback,
                   vk::PhysicalDevice device) -> void;
@@ -51,7 +56,7 @@ class Device {
       -> void;
   auto uuid() const -> unsigned long long;
   auto vendor() const -> unsigned long long;
-  auto name() -> std::string_view;
+  auto name() -> std::string {return std::string(&this->properties.deviceName[0]);};
   auto addExtension(const char* extension) -> void;
   auto addValidation(const char* validation) -> void;
   auto score() -> float;

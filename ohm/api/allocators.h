@@ -230,5 +230,5 @@ auto PoolAllocator<API>::destroy(int32_t handle) -> void {
 }
 
 template <typename API>
-using DefaultAllocator = PoolAllocator<API>;
+using DefaultAllocator = RawAllocator<API>;
 }  // namespace ohm

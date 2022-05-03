@@ -37,6 +37,8 @@ auto Device::operator=(Device&& mv) -> Device& {
   this->surface = mv.surface;
   this->queue_props = mv.queue_props;
   this->properties = mv.properties;
+  this->mem_prop = mv.mem_prop;
+  this->mem_heaps = mv.mem_heaps;
   this->features = mv.features;
   this->m_dispatch = mv.m_dispatch;
   this->queues = mv.queues;
@@ -49,6 +51,8 @@ auto Device::operator=(Device&& mv) -> Device& {
   mv.gpu = nullptr;
   mv.physical_device = nullptr;
   mv.surface = nullptr;
+  mv.mem_prop = vk::PhysicalDeviceMemoryProperties();
+  mv.mem_heaps = {};
   mv.properties = vk::PhysicalDeviceProperties();
   mv.features = vk::PhysicalDeviceFeatures();
   mv.id = 0;
@@ -176,7 +180,10 @@ auto Device::initialize(io::Dlloader& loader, vk::AllocationCallbacks* callback,
   this->allocate_cb = callback;
 
   this->properties = device.getProperties(system().instance.dispatch());
-
+  if(this->properties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
+    this->m_score += 50;
+  }
+  
   this->findQueueFamilies();
   this->makeDevice();
 
@@ -273,10 +280,6 @@ auto Device::uuid() const -> unsigned long long {
 
 auto Device::vendor() const -> unsigned long long {
   return this->properties.vendorID;
-}
-
-auto Device::name() -> std::string_view {
-  return &this->properties.deviceName[0];
 }
 
 auto Device::addExtension(const char* extension) -> void {

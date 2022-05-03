@@ -4,6 +4,8 @@
 #include <memory>
 #include "ohm/api/ohm.h"
 #include "ohm/vulkan/vulkan_impl.h"
+#include <iostream>
+#include <map>
 
 namespace ohm {
 using API = ohm::Vulkan;
@@ -43,10 +45,16 @@ namespace sys {
 auto test_name() -> bool {
   auto name = System<API>::name();
   return !name.empty();
+  std::map<std::string, std::string> map;
+  map.insert({"lmao", "lmao"});
 }
 
 auto test_devices() -> bool {
   auto devices = System<API>::devices();
+  std::cout << "Hardware-accelerated devices found: \n";
+  for(auto& device : devices) {
+    std::cout << "--" << device.name << std::endl;
+  }
   return !devices.empty();
 }
 
@@ -299,10 +307,20 @@ auto test_gpu_array_copy() -> bool {
   commands.submit();
   commands.synchronize();
 
+  commands.begin();
+  commands.copy(array_2, array_host);
   commands.copy(array_host, host_array.data());
-
+  commands.submit();
+  commands.synchronize();
   for (auto& num : host_array) {
-    if (num != 1337) return false;
+    if (num != 1337) {
+      std::cout << std::endl;
+      std::cout << "\n handle1: " << array_1.memory().handle();
+      std::cout << "\n handle2: " << array_2.memory().handle();
+      std::cout << "\n handle3: " << array_host.memory().handle();
+      std::cout << "\n1 " << num << std::endl;
+      return false;
+    }
   }
 
   commands.begin();
@@ -313,7 +331,13 @@ auto test_gpu_array_copy() -> bool {
   commands.copy(array_host, host_array.data());
 
   for (auto& num : host_array) {
-    if (num != 0) return false;
+    if (num != 0) {
+      std::cout << "handle1: " << array_1.handle();
+      std::cout << "handle2: " << array_2.handle();
+      std::cout << "handle3: " << array_host.handle();
+      std::cout << "2 " << num << std::endl;
+      return false;
+    }
   }
 
   return true;

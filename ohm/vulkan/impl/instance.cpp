@@ -23,7 +23,7 @@ constexpr const char* END_COLOR = "\x1B[m";
 constexpr const char* COLOR_RED = "\u001b[31m";
 constexpr const char* COLOR_GREEN = "\u001b[32m";
 constexpr const char* COLOR_YELLOW = "\u001b[33m";
-constexpr const char* COLOR_GREY = "\x1B[1;30m";
+constexpr const char* COLOR_GREY = "\u001b[37m";
 constexpr const char* UNDERLINE = "\u001b[4m";
 #else
 constexpr const char* END_COLOR = "";
@@ -195,7 +195,7 @@ auto Instance::dispatch() -> vk::DispatchLoaderDynamic& {
 }
 
 vk::PhysicalDevice Instance::device(unsigned id) {
-  return this->m_devices.size() < id ? this->m_devices[id] : this->m_devices[0];
+  return this->m_devices[id];
 }
 
 Instance::Instance() {}

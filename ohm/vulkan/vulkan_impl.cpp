@@ -7,6 +7,7 @@
 #include "ohm/vulkan/vulkan_impl.h"
 #include <SDL.h>
 #include <atomic>
+#include <algorithm>
 #include "impl/swapchain.h"
 #include "ohm/api/exception.h"
 #include "ohm/api/memory.h"
@@ -32,12 +33,13 @@ auto Vulkan::System::initialize() Ohm_NOEXCEPT -> void {
 #endif
 
     ovk::system().instance.initialize(loader, ovk::system().allocate_cb);
-    ovk::system().devices.resize(ovk::system().instance.devices().size());
-    ovk::system().gpus.resize(ovk::system().devices.size());
+    //ovk::system().devices = {};
+    ovk::system().devices.reserve(ovk::system().instance.devices().size());
+    ovk::system().gpus.reserve(ovk::system().instance.devices().size());
 
-    unsigned index = 0;
-    for (auto& device : ovk::system().devices) {
-      auto& gpu = ovk::system().gpus[index];
+    for (auto& p_device : ovk::system().instance.devices()) {
+      
+      auto device = ovk::Device();
       for (auto& extension : ovk::system().device_extensions) {
         device.addExtension(extension.c_str());
       }
@@ -47,8 +49,17 @@ auto Vulkan::System::initialize() Ohm_NOEXCEPT -> void {
       }
 
       device.initialize(loader, ovk::system().allocate_cb,
-                        ovk::system().instance.device(index++));
-      gpu.name = device.name();
+                        p_device);
+      ovk::system().devices.emplace_back(std::move(device));
+    }
+    auto compare = [](ovk::Device& a, ovk::Device& b) {
+      return a.score() > b.score();
+    };
+    std::sort(ovk::system().devices.begin(), ovk::system().devices.end(), compare);
+    for(auto index = 0u; index < ovk::system().devices.size(); index++) {
+      auto gpu = ohm::Gpu();
+      gpu.name = ovk::system().devices[index].name();
+      ovk::system().gpus.emplace_back(std::move(gpu));
     }
   }
 }
