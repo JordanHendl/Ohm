@@ -45,9 +45,6 @@ class Device {
   Device(const Device& cpy) = delete;
   ~Device();
   auto operator=(const Device& cpy) -> Device& = delete;
-  //auto operator=(const Device& cpy) -> Device& {
-  //    return *this;
-  //}
   auto operator=(Device&& cpy) -> Device&;
   auto initialize(io::Dlloader& loader, vk::AllocationCallbacks* callback,
                   vk::PhysicalDevice device) -> void;

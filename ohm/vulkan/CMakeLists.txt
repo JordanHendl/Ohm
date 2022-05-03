@@ -22,7 +22,7 @@ set(vulkan_libs
      io
    )
 
-add_library               (vulkan SHARED  ${vulkan_srcs} )#${vulkan_impl_srcs})
+add_library               (vulkan SHARED  ${vulkan_srcs})
 target_link_libraries     (vulkan PRIVATE  ${vulkan_libs})
 target_include_directories(vulkan PRIVATE ${vulkan_includes})
 

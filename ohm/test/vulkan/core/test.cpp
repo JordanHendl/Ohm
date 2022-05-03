@@ -45,8 +45,6 @@ namespace sys {
 auto test_name() -> bool {
   auto name = System<API>::name();
   return !name.empty();
-  std::map<std::string, std::string> map;
-  map.insert({"lmao", "lmao"});
 }
 
 auto test_devices() -> bool {
@@ -314,11 +312,6 @@ auto test_gpu_array_copy() -> bool {
   commands.synchronize();
   for (auto& num : host_array) {
     if (num != 1337) {
-      std::cout << std::endl;
-      std::cout << "\n handle1: " << array_1.memory().handle();
-      std::cout << "\n handle2: " << array_2.memory().handle();
-      std::cout << "\n handle3: " << array_host.memory().handle();
-      std::cout << "\n1 " << num << std::endl;
       return false;
     }
   }
@@ -332,10 +325,6 @@ auto test_gpu_array_copy() -> bool {
 
   for (auto& num : host_array) {
     if (num != 0) {
-      std::cout << "handle1: " << array_1.handle();
-      std::cout << "handle2: " << array_2.handle();
-      std::cout << "handle3: " << array_host.handle();
-      std::cout << "2 " << num << std::endl;
       return false;
     }
   }

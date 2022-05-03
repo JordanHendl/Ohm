@@ -33,12 +33,10 @@ auto Vulkan::System::initialize() Ohm_NOEXCEPT -> void {
 #endif
 
     ovk::system().instance.initialize(loader, ovk::system().allocate_cb);
-    //ovk::system().devices = {};
     ovk::system().devices.reserve(ovk::system().instance.devices().size());
     ovk::system().gpus.reserve(ovk::system().instance.devices().size());
 
     for (auto& p_device : ovk::system().instance.devices()) {
-      
       auto device = ovk::Device();
       for (auto& extension : ovk::system().device_extensions) {
         device.addExtension(extension.c_str());
