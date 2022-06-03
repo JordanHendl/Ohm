@@ -41,6 +41,36 @@ const char* test_compute_shader = {
     "  imageStore( output_tex, tex_coords, out_vec ) ;\n"
     "}\n"};
 
+const char* test_vert_shader = 
+"#version 440 core\n"
+"layout(location = 0) in vec2 pos;\n"
+"layout(location = 1) in vec2 uv;\n"
+"\n"
+"layout(location = 0) out vec2 frag_uvs;"
+"void main() {\n"
+"  gl_Position = vec4(pos, 0.0f, 1.0f);\n"
+"  frag_uvs = uv;\n"
+"}\n";
+
+const char* test_frag_shader = 
+"#version 450 core\n"
+"#extension GL_ARB_separate_shader_objects : enable\n"
+"#define FLT_EPSILON 1.19209290E-07F\n"
+"layout( location = 0 ) in vec2 frag_uvs ;\n"
+""
+"layout( location = 0 ) out vec4 out_color ;\n"
+""
+"layout( binding = 1 ) uniform sampler2D tex ;\n"
+""
+"void main() {\n"
+"    vec4 sampled = texture(tex, frag_uvs);\n"
+"    if( sampled.r < FLT_EPSILON ) discard;\n"
+"    if(sampled.r < 0.013f && sampled.r > FLT_EPSILON)\n"
+"      out_color = vec4(0,0,0, 1) ;\n"
+"    else\n"
+"      out_color = vec4(1,1,1, 1) ;\n"
+"}\n";
+
 namespace sys {
 auto test_name() -> bool {
   auto name = System<API>::name();
@@ -193,6 +223,17 @@ auto test_creation() -> bool {
       Pipeline<API>(0, {{{"test_shader.comp.glsl", test_compute_shader}}});
   return pipeline.handle() >= 0;
 }
+
+auto test_graphics_creation() -> bool {
+  auto info = RenderPassInfo();
+  auto subpass = Subpass();
+  subpass.attachments.push_back({});
+  info.subpasses.push_back(subpass);
+  auto render_pass = RenderPass<API>(0, info);
+  auto pipeline = Pipeline<API>(render_pass, {{{"test.vert.glsl", test_vert_shader}, {"test.frag.glsl", test_frag_shader}}});
+  return pipeline.handle() >= 0;
+}
+
 auto test_correct_gpu() -> bool {
   auto pipeline =
       Pipeline<API>(0, {{{"test_shader.comp.glsl", test_compute_shader}}});
@@ -353,6 +394,28 @@ auto test_image_copy() -> bool {
   commands.synchronize();
   return true;
 }
+
+auto test_render_pass_rendering() -> bool {
+  struct vec4{
+    float x, y;
+    float u, v;
+  };
+
+  auto vertices = Array<API, vec4>(0, 8, ohm::HeapType::HostVisible);
+  auto info = RenderPassInfo();
+  auto subpass = Subpass();
+  subpass.attachments.push_back({});
+  info.subpasses.push_back(subpass);
+  auto render_pass = RenderPass<API>(0, info);
+  auto pipeline = Pipeline<API>(render_pass, {{{"test.vert.glsl", test_vert_shader}, {"test.frag.glsl", test_frag_shader}}});
+  auto commands = Commands<API>(0);
+  auto descriptor = pipeline.descriptor();
+
+  commands.attach(render_pass);
+  commands.bind(descriptor);
+  commands.draw(vertices);
+  return true;
+}
 }  // namespace commands
 }  // namespace ohm
 
@@ -385,6 +448,7 @@ TEST(Vulkan, Image) {
 
 TEST(Vulkan, Pipeline) {
   EXPECT_TRUE(ohm::pipeline::test_creation());
+  EXPECT_TRUE(ohm::pipeline::test_graphics_creation());
   EXPECT_TRUE(ohm::pipeline::test_correct_gpu());
 }
 

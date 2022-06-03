@@ -54,21 +54,23 @@ Pipeline::Pipeline(Device& device, const PipelineInfo& info) {
   this->createPipeline();
 }
 
-//    Pipeline::Pipeline(RenderPass& pass, const PipelineInfo& info)
-//    {
-//      this->m_device      = &pass.device() ;
-//      this->m_render_pass = &pass          ;
-//      if( info.hasPath() ) this->m_shader = new Shader( *this->m_device,
-//      info.path()                   ) ; else                 this->m_shader =
-//      new Shader( *this->m_device, info.bytes(), info.numBytes() ) ;
-//
-//      this->m_pool.initialize( *this ) ;
-//      this->m_descriptor = this->m_pool.make() ;
-//
-//      this->m_parse( info ) ;
-//      this->m_color_blend_info.setAttachments( this->m_color_blend_attachments
-//      ) ; this->m_createLayout() ; this->m_createPipeline() ;
-//    }
+Pipeline::Pipeline(RenderPass& pass, const PipelineInfo& info)
+{
+  this->init_params();
+  this->m_device      = pass.device() ;
+  this->m_render_pass = &pass          ;
+  if(info.inline_files.empty())
+   this->m_shader = std::make_unique<Shader>(*this->m_device, info.file_name);
+  else
+    this->m_shader = std::make_unique<Shader>(*this->m_device, info.inline_files);
+
+  this->m_pool.initialize( *this ) ;
+
+  this->parse(info) ;
+  this->m_color_blend_info.setAttachments(this->m_color_blend_attachments); 
+  this->createLayout();
+  this->createPipeline();
+}
 
 Pipeline::Pipeline(Pipeline&& mv) { *this = std::move(mv); }
 
@@ -213,7 +215,7 @@ auto Pipeline::createPipeline() -> void {
     graphics_info.setPMultisampleState(&this->m_multisample_info);
     graphics_info.setPColorBlendState(&this->m_color_blend_info);
     graphics_info.setPDepthStencilState(&this->m_depth_stencil_info);
-    //        graphics_info.setRenderPass         ( this->render_pass->pass() );
+    graphics_info.setRenderPass(this->m_render_pass->pass());
 
     this->m_pipeline = error(device.createGraphicsPipeline(
         this->m_cache, graphics_info, alloc_cb, dispatch));
@@ -260,7 +262,7 @@ auto Pipeline::parse(const PipelineInfo& info) -> void {
   for (auto& viewport : info.viewports) {
     this->addViewport(viewport);
   }
-  // TODO add more config to parse.
+  // @JH TODO add more config to parse.
 }
 
 auto Pipeline::descriptor() -> Descriptor { return this->m_pool.make(); }

@@ -32,7 +32,7 @@ class Pipeline {
   using Viewports = std::vector<vk::Viewport>;
   using Scissors = std::vector<vk::Rect2D>;
 
-  const RenderPass* m_render_pass;
+  RenderPass* m_render_pass;
   Scissors m_scissors;
   Viewports m_viewports;
   DescriptorPool m_pool;

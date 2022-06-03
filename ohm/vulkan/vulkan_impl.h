@@ -63,6 +63,8 @@ struct Vulkan {
     static auto create(int gpu, QueueType type) Ohm_NOEXCEPT -> int32_t;
     static auto destroy(int32_t handle) Ohm_NOEXCEPT -> void;
     static auto begin(int32_t handle) Ohm_NOEXCEPT -> void;
+    static auto draw(int32_t handle, int32_t vertices, size_t instance_count) Ohm_NOEXCEPT -> void;
+    static auto draw_indexed(int32_t handle, int32_t indices, int32_t vertices, size_t instance_count) Ohm_NOEXCEPT -> void;
     static auto bind(int32_t handle, int32_t desc) Ohm_NOEXCEPT -> void;
     static auto copy_to_image(int32_t handle, int32_t src, int32_t dst,
                               size_t count) Ohm_NOEXCEPT -> void;

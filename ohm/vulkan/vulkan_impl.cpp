@@ -302,6 +302,14 @@ auto Vulkan::Commands::create(int gpu, QueueType type) Ohm_NOEXCEPT -> int32_t {
   return -1;
 }
 
+auto Vulkan::Commands::draw(int32_t handle, int32_t vertices, size_t instance_count) Ohm_NOEXCEPT -> void {
+
+}
+
+auto Vulkan::Commands::draw_indexed(int32_t handle, int32_t indices, int32_t vertices, size_t instance_count) Ohm_NOEXCEPT -> void {
+
+}
+
 auto Vulkan::Commands::destroy(int32_t handle) Ohm_NOEXCEPT -> void {
   OhmAssert(handle < 0, "Attempting to destroy an invalid commands handle.");
   auto& cmd = ovk::system().commands[handle];
@@ -530,6 +538,17 @@ auto Vulkan::Pipeline::create(int gpu, const PipelineInfo& info) Ohm_NOEXCEPT
 auto Vulkan::Pipeline::create_from_rp(int32_t rp_handle,
                                       const PipelineInfo& info) Ohm_NOEXCEPT
     -> int32_t {
+  auto& rp = ovk::system().render_pass[rp_handle];
+  auto index = 0;
+  for (auto& val : ovk::system().pipeline) {
+    if (!val.initialized()) {
+      val = std::move(ovk::Pipeline(rp, info));
+      return index;
+    }
+    index++;
+  }
+
+  OhmAssert(true, "Too many pipelines. API has run out of allocation.");
   return -1;
 }
 

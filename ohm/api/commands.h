@@ -192,12 +192,16 @@ template <typename API, QueueType Queue>
 template <typename Type, typename Type2, typename Allocator>
 auto Commands<API, Queue>::draw(const Array<API, Type, Allocator>& indices,
                                 const Array<API, Type2, Allocator>& vertices,
-                                size_t instance_count) -> void {}
+                                size_t instance_count) -> void {
+  API::Commands::draw_indexed(this->m_handle, indices.handle(), vertices.handle(), instance_count);
+}
 
 template <typename API, QueueType Queue>
 template <typename Type, typename Allocator>
 auto Commands<API, Queue>::draw(const Array<API, Type, Allocator>& vertices,
-                                size_t instance_count) -> void {}
+                                size_t instance_count) -> void {
+  API::Commands::draw(this->m_handle, vertices.handle(), instance_count);
+}
 
 template <typename API, QueueType Queue>
 auto Commands<API, Queue>::dispatch(size_t x, size_t y, size_t z) -> void {

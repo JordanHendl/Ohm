@@ -95,9 +95,12 @@ Array<API, Type, Allocator>::~Array() {
 template <typename API, typename Type, class Allocator>
 auto Array<API, Type, Allocator>::operator=(Array<API, Type, Allocator>&& mv)
     -> Array<API, Type, Allocator>& {
-  this->m_handle = mv.handle;
+  this->m_handle = mv.m_handle;
   this->m_count = mv.m_count;
-  this->m_memory = std::move(mv.memory);
+  this->m_memory = std::move(mv.m_memory);
+
+  mv.m_handle = -1;
+  mv.m_count = 0;
 }
 
 template <typename API, typename Type, class Allocator>
