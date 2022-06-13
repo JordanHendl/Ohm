@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <utility>
+#include <vector>
 #include "descriptor.h"
 #include "ohm/io/shader.h"
 #include "render_pass.h"
@@ -80,8 +81,10 @@ class Pipeline {
   explicit Pipeline(const RenderPass<API, Allocator>& rp,
                     const PipelineInfo& info);
   explicit Pipeline(Pipeline&& mv);
+  explicit Pipeline(const Pipeline& cpy) = delete;  
   ~Pipeline();
   auto operator=(Pipeline&& mv) -> Pipeline&;
+  auto operator=(const Pipeline& cpy) -> Pipeline& = delete;
   auto info() const -> const PipelineInfo&;
   auto gpu() const -> int;
   auto descriptor() const -> Descriptor<API>;

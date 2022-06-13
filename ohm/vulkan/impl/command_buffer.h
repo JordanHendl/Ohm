@@ -3,6 +3,8 @@
 #include <mutex>
 #include <thread>
 #include <unordered_map>
+#include <algorithm>
+#include <vector>
 #include <vulkan/vulkan.hpp>
 #include "device.h"
 #include "ohm/api/commands.h"

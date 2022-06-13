@@ -1,6 +1,7 @@
 #include "dlloader.h"
 #include "ohm/api/exception.h"
 #include <iostream>
+#include <string>
 #include <map>
 
 #ifdef _WIN32

@@ -6,6 +6,8 @@
 #define VULKAN_HPP_NO_EXCEPTIONS
 
 #include "swapchain.h"
+#include <utility>
+#include <algorithm>
 #include "ohm/vulkan/impl/error.h"
 #include "ohm/vulkan/impl/system.h"
 namespace ohm {

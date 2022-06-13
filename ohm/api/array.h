@@ -1,8 +1,8 @@
 #pragma once
 #include <memory>
+#include <utility>
 #include "exception.h"
 #include "memory.h"
-
 namespace ohm {
 
 /** Object to encapsulate a typed memory array.
@@ -101,6 +101,7 @@ auto Array<API, Type, Allocator>::operator=(Array<API, Type, Allocator>&& mv)
 
   mv.m_handle = -1;
   mv.m_count = 0;
+  return *this;
 }
 
 template <typename API, typename Type, class Allocator>

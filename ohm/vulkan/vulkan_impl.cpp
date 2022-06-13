@@ -8,6 +8,8 @@
 #include <SDL.h>
 #include <atomic>
 #include <algorithm>
+#include <memory>
+#include <utility>
 #include "impl/swapchain.h"
 #include "ohm/api/exception.h"
 #include "ohm/api/memory.h"

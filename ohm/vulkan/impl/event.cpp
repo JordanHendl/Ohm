@@ -5,6 +5,7 @@
 #define VULKAN_HPP_NO_EXCEPTIONS
 
 #include "event.h"
+#include <utility>
 #include "image.h"
 #include "ohm/api/event.h"
 namespace ohm {

@@ -1,11 +1,12 @@
 #include "shader.h"
+#include "ohm/api/exception.h"
 #include <spirv_reflect.h>
+#include <shaderc/shaderc.hpp>
 #include <fstream>
 #include <iostream>
 #include <ostream>
-#include <shaderc/shaderc.hpp>
 #include <string>
-#include "ohm/api/exception.h"
+#include <utility>
 
 namespace ohm {
 namespace io {
@@ -154,6 +155,7 @@ auto Shader::ShaderData::reflect(Shader::Stage& stage) -> void {
 
   this->reflect_variables(stage, module);
   this->reflect_io(stage, module);
+  spvReflectDestroyShaderModule(&module);
   (void)result;
   (void)success;
 }

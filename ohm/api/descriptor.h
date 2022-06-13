@@ -2,6 +2,8 @@
 #include "array.h"
 #include "image.h"
 #include "memory.h"
+#include <vector>
+#include <utility>
 #include <string>
 
 namespace ohm {

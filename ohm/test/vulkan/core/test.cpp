@@ -186,13 +186,14 @@ auto test_getters() -> bool {
 }  // namespace image
 namespace render_pass {
 auto test_creation() -> bool {
+  auto rp = RenderPass<API>();
   auto info = RenderPassInfo();
   auto subpass = Subpass();
   subpass.attachments.push_back({});
   info.subpasses.push_back(subpass);
 
-  auto render_pass = RenderPass<API>(0, info);
-  return render_pass.handle() >= 0;
+  rp = std::move(RenderPass<API>(0, info));
+  return rp.handle() >= 0;
 }
 
 auto test_images() -> bool {
@@ -219,8 +220,8 @@ auto test_images_valid() -> bool {
 }  // namespace render_pass
 namespace pipeline {
 auto test_creation() -> bool {
-  auto pipeline =
-      Pipeline<API>(0, {{{"test_shader.comp.glsl", test_compute_shader}}});
+  auto pipeline = Pipeline<API>();
+  pipeline = Pipeline<API>(0, {{{"test_shader.comp.glsl", test_compute_shader}}});
   return pipeline.handle() >= 0;
 }
 

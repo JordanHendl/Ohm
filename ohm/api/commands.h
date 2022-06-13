@@ -1,7 +1,9 @@
 #pragma once
+#include <algorithm>
 #include "array.h"
 #include "descriptor.h"
 #include "image.h"
+
 namespace ohm {
 
 template <typename API>

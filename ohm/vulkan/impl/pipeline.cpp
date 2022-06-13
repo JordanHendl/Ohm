@@ -5,7 +5,8 @@
 #define VULKAN_HPP_NO_EXCEPTIONS
 
 #include "ohm/vulkan/impl/pipeline.h"
-#include <stdio.h>
+#include <cstdio>
+#include <utility>
 #include <vulkan/vulkan.hpp>
 #include "ohm/api/pipeline.h"
 #include "ohm/vulkan/impl/device.h"

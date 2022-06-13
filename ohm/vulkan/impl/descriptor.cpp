@@ -6,6 +6,8 @@
 
 #include "ohm/vulkan/impl/descriptor.h"
 #include <iostream>
+#include <utility>
+#include <vector>
 #include "ohm/vulkan/impl/error.h"
 #include "ohm/vulkan/impl/pipeline.h"
 

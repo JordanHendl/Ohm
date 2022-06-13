@@ -1,6 +1,8 @@
 #pragma once
 #include <array>
 #include <vector>
+#include <memory>
+#include <utility>
 #include "allocators.h"
 #include "image.h"
 namespace ohm {
@@ -60,8 +62,10 @@ class RenderPass {
   explicit RenderPass(int gpu, RenderPassInfo info);
   explicit RenderPass(int gpu, const std::vector<Attachment>& attachments);
   explicit RenderPass(RenderPass&& mv);
+  explicit RenderPass(const RenderPass& cpy) = delete;
   ~RenderPass();
   auto operator=(RenderPass&& mv) -> RenderPass&;
+  auto operator=(const RenderPass& cpy) -> RenderPass& = delete;
   auto gpu() const -> int;
   auto handle() const -> int32_t;
   auto image(size_t layer = 0, size_t framebuffer = 0, size_t subpass = 0) -> Image<API>&;
@@ -141,6 +145,7 @@ auto RenderPass<API, Allocator>::operator=(RenderPass&& mv) -> RenderPass& {
   mv.m_gpu = -1;
   mv.m_handle = -1;
   mv.m_info = {};
+  return *this;
 }
 
 template <typename API, typename Allocator>

@@ -7,6 +7,7 @@
 #include <SDL.h>
 #include <SDL_vulkan.h>
 #include <string>
+#include <utility>
 #include "ohm/vulkan/impl/error.h"
 #include "ohm/vulkan/impl/system.h"
 namespace ohm {

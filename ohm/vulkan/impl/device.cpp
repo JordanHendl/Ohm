@@ -4,8 +4,9 @@
 #define VULKAN_HPP_NO_DEFAULT_DISPATCHER
 #define VULKAN_HPP_NO_EXCEPTIONS
 
-#include "ohm/vulkan/impl/device.h"
 #include <memory>
+#include <utility>
+#include "ohm/vulkan/impl/device.h"
 #include "ohm/api/exception.h"
 #include "ohm/io/dlloader.h"
 #include "ohm/vulkan/impl/error.h"

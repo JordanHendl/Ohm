@@ -7,6 +7,8 @@
 #include "command_buffer.h"
 #include <array>
 #include <climits>
+#include <utility>
+#include <algorithm>
 #include <iostream>
 #include <map>
 #include <vector>

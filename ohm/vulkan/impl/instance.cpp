@@ -7,11 +7,12 @@
 #include "ohm/vulkan/impl/instance.h"
 #include <SDL.h>
 #include <SDL_vulkan.h>
+#include <vulkan/vulkan.hpp>
 #include <array>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <vulkan/vulkan.hpp>
+#include <utility>
 #include "ohm/api/exception.h"
 #include "ohm/io/dlloader.h"
 #include "ohm/vulkan/impl/error.h"
